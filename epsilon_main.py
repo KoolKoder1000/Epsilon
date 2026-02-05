@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Centered Calendar & Compact Grid ---
+# --- 4. CSS for Centered Headers & Compact Grid ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -34,7 +34,7 @@ st.markdown("""
         direction: rtl;
     }
 
-    /* THE FIX: Force the Date Picker / Calendar to the Center */
+    /* Force the Date Picker / Calendar to the Center */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
@@ -48,15 +48,29 @@ st.markdown("""
         font-size: 3rem; font-weight: 900; color: white; 
     }
 
+    /* MODIFIED: Student Name Header Centering */
     .student-header {
         font-size: 0.9rem !important;
-        font-weight: 800; color: white;
-        text-align: center !important;
+        font-weight: 800; 
+        color: white;
+        text-align: center !important; /* Standard centering */
+        display: block !important;
+        width: 100% !important;
         white-space: nowrap !important;
         padding-top: 35px;
     }
 
-    /* Compact Squares */
+    /* Ensure column children (buttons/text) center properly */
+    [data-testid="column"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+    }
+
+    /* Small Square Buttons */
     div.stButton > button {
         width: 24px !important;
         height: 24px !important;
@@ -80,12 +94,6 @@ st.markdown("""
         height: 22px !important;
     }
 
-    /* Column Tightening */
-    [data-testid="column"] {
-        padding-left: 1px !important;
-        padding-right: 1px !important;
-    }
-
     /* Status Colors */
     div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; }
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; }
@@ -100,7 +108,7 @@ st.markdown("""
         text-align: right;
         min-width: 120px;
     }
-    .row-divider { margin: 6px 0; border-bottom: 1px solid #222; }
+    .row-divider { margin: 6px 0; border-bottom: 1px solid #222; width: 100%; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -117,7 +125,8 @@ grid_ratios = [1.5] + [0.5] * len(STUDENTS)
 cols = st.columns(grid_ratios, gap="small")
 
 with cols[0]:
-    st.markdown("<p class='student-header' style='text-align:right !important; padding-right:5px;'>פרטי המטלה</p>", unsafe_allow_html=True)
+    # We keep the first column text right-aligned to match the cards below it
+    st.markdown("<p class='student-header' style='text-align:right !important; padding-right:15px;'>פרטי המטלה</p>", unsafe_allow_html=True)
 
 for i, name in enumerate(STUDENTS.keys()):
     with cols[i+1]:
@@ -131,6 +140,7 @@ if tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
         with r_cols[0]:
+            # Sub-columns for bin and text within the first main column
             c_bin, c_text = st.columns([0.2, 0.8])
             with c_bin:
                 st.markdown('<div class="trash-zone">', unsafe_allow_html=True)
