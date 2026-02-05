@@ -9,7 +9,7 @@ st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 # --- 2. Auto-Refresh Setup ---
 # This will refresh the app every 30 seconds (30000 milliseconds)
 # We give it a unique key to keep it stable.
-st_autorefresh(interval=30000, key="datarefresh")
+st_autorefresh(interval=5000, key="datarefresh")
 
 # --- 3. Supabase Connection ---
 url = st.secrets["SUPABASE_URL"]
