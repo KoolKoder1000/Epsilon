@@ -22,7 +22,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 3. UI Refinement CSS ---
+# --- 3. Advanced UI Refinement CSS ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp {
@@ -31,21 +31,20 @@ st.markdown("""
         text-align: right;
     }
     
-    /* Sidebar Fixes */
+    /* Sidebar RTL Fix */
     [data-testid="stSidebar"] { left: 0 !important; right: auto !important; }
     [data-testid="stSidebarCollapsedControl"] { left: 20px !important; right: auto !important; }
     
-    /* FORCE CALENDAR TO CENTER */
-    div[data-baseweb="datepicker"] {
-        display: flex !important;
-        justify-content: center !important;
-    }
+    /* ABSOLUTE CENTER CALENDAR POPUP */
     div[data-baseweb="popover"] {
+        position: fixed !important;
+        top: 50% !important;
         left: 50% !important;
-        transform: translateX(-50%) !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 9999 !important;
     }
 
-    /* Grid Alignment */
+    /* Column alignment */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -54,7 +53,7 @@ st.markdown("""
         padding: 0px 1px !important;
     }
     
-    /* Button Styling */
+    /* Status Button Styling */
     div.stButton > button {
         width: 100% !important;
         min-width: 60px !important; 
@@ -65,15 +64,20 @@ st.markdown("""
         height: 38px !important;
     }
 
-    /* Delete Button Specific (Smaller & Gray) */
+    /* Delete Button Styling (Trash can) */
+    .delete-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
     .delete-container button {
-        background-color: transparent !important;
+        background-color: #262730 !important;
         border: 1px solid #444 !important;
         color: #888 !important;
-        height: 30px !important;
-        width: 30px !important;
-        min-width: 30px !important;
-        margin-bottom: 5px;
+        height: 35px !important;
+        width: 35px !important;
+        min-width: 35px !important;
     }
     .delete-container button:hover {
         border-color: #ff4b4b !important;
@@ -87,17 +91,17 @@ st.markdown("""
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; color: white !important; }
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; color: white !important; }
 
-    /* Task Box Styling */
+    /* Task Card Styling */
     .task-container { 
         background-color: #1e1e1e; 
         border-right: 4px solid #ffffff; 
         padding: 10px 15px; 
         border-radius: 4px; 
         width: 100%; 
-        position: relative;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
-    .task-subject { color: white !important; font-weight: 800; font-size: 0.95rem; }
-    .row-divider { margin: 12px 0; border-bottom: 1px solid #333; width: 100%; }
+    .task-subject { color: white !important; font-weight: 800; font-size: 0.95rem; margin-bottom: 2px; }
+    .row-divider { margin: 15px 0; border-bottom: 1px solid #333; width: 100%; }
     .m-red, .m-orange, .m-green { display: none; }
 </style>
 """, unsafe_allow_html=True)
@@ -142,8 +146,8 @@ except Exception as e:
 if not tasks:
     st.info("אין כרגע מטלות במערכת.")
 else:
-    # Header Row
-    grid_ratios = [3.5] + [1] * len(STUDENTS)
+    # Header Row - Increased ratio for Task Details (4.0)
+    grid_ratios = [4.0] + [1] * len(STUDENTS)
     h_cols = st.columns(grid_ratios, gap="small")
     with h_cols[0]: st.markdown("<p style='text-align:center; color:white; font-weight:700;'>פרטי המטלה</p>", unsafe_allow_html=True)
     for i, name in enumerate(STUDENTS.keys()):
@@ -155,16 +159,16 @@ else:
     for task in tasks:
         row_cols = st.columns(grid_ratios, gap="small")
         
-        # Details & Integrated Delete
+        # Details & Delete Button
         with row_cols[0]:
-            main_card, del_col = st.columns([0.85, 0.15])
+            main_card, del_area = st.columns([0.88, 0.12])
             with main_card:
                 st.markdown(f"""<div class="task-container">
                     <div class="task-subject">{task.get('subject', '')}</div>
                     <div style="color:#eee; font-size:0.85rem;">{task.get('desc', '')}</div>
                     <div style="color:#888; font-size:0.75rem;">📅 {task.get('due_date', '')}</div>
                 </div>""", unsafe_allow_html=True)
-            with del_col:
+            with del_area:
                 st.markdown('<div class="delete-container">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{task['id']}"):
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
@@ -179,6 +183,6 @@ else:
                 st.markdown(f'<div class="{s_data["class"]}"></div>', unsafe_allow_html=True)
                 if st.button(s_data["label"], key=f"btn_{task['id']}_{db_col}"):
                     new_val = (current_val + 1) % 3
-                    supabase.table("supabase").update({db_col: new_val}).eq("id", task['id']).execute()
+                    supabase.table("tasks").update({db_col: new_val}).eq("id", task['id']).execute()
                     st.rerun()
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
