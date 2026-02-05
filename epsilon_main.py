@@ -1,11 +1,17 @@
 import streamlit as st
 from datetime import datetime
 from supabase import create_client
+from streamlit_autorefresh import st_autorefresh  # <-- New Import
 
 # --- 1. Page Config ---
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
-# --- 2. Supabase Connection ---
+# --- 2. Auto-Refresh Setup ---
+# This will refresh the app every 30 seconds (30000 milliseconds)
+# We give it a unique key to keep it stable.
+st_autorefresh(interval=30000, key="datarefresh")
+
+# --- 3. Supabase Connection ---
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
@@ -22,16 +28,14 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 3. Refined CSS ---
+# --- 4. Refined CSS (Calibri & Centering) ---
 st.markdown("""
 <style>
-    /* Global Font Fix */
     html, body, [class*="css"], .stApp, button, p, div {
         font-family: 'Calibri', 'Segoe UI', sans-serif !important;
         direction: rtl;
     }
 
-    /* Absolute Center Calendar */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
@@ -39,7 +43,6 @@ st.markdown("""
         transform: translate(-50%, -50%) !important;
     }
 
-    /* Title & Name Spacing */
     .main-title { 
         text-align: center; 
         margin-top: -40px !important; 
@@ -53,15 +56,14 @@ st.markdown("""
         font-weight: 800;
         color: white;
         text-align: center !important;
-        padding-top: 45px; /* Pushes names down from title */
+        padding-top: 45px; 
         padding-bottom: 10px;
         width: 100%;
     }
 
-    /* Button Layout & Text Fix */
     div.stButton > button {
         width: 100% !important;
-        font-size: 0.7rem !important; /* Smaller to prevent wrap */
+        font-size: 0.7rem !important;
         font-weight: 700 !important;
         height: 36px !important;
         white-space: nowrap !important;
@@ -70,12 +72,11 @@ st.markdown("""
         border-radius: 6px !important;
     }
 
-    /* Trash Button & Gap */
     .del-zone {
         display: flex;
         justify-content: center;
         align-items: center;
-        padding-left: 20px; /* Gap between trash and first status */
+        padding-left: 20px; 
     }
     .del-zone button {
         background-color: #262730 !important;
@@ -85,12 +86,10 @@ st.markdown("""
         min-width: 34px !important;
     }
 
-    /* Status Colors */
     div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; color: white !important; }
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; color: white !important; }
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; color: white !important; }
 
-    /* Task Box */
     .task-card {
         background-color: #1e1e1e;
         border-right: 5px solid #ffffff;
@@ -103,16 +102,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. Main UI ---
+# --- 5. Main UI ---
 st.markdown("<h1 class='main-title'>אפסילון</h1>", unsafe_allow_html=True)
 
 try:
+    # We use .select("*") to get fresh data on every refresh
     tasks = supabase.table("tasks").select("*").order("due_date").execute().data
 except:
     tasks = []
 
 # Header Row
-# Adjusted ratios: 2.2 for details provides just enough space for Hebrew text
 grid_ratios = [2.2] + [1] * len(STUDENTS)
 cols = st.columns(grid_ratios, gap="small")
 
@@ -130,7 +129,6 @@ if tasks:
     for task in tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
-        # Column 0: Details + Delete
         with r_cols[0]:
             c_text, c_del = st.columns([0.8, 0.2])
             with c_text:
@@ -146,7 +144,6 @@ if tasks:
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
 
-        # Columns 1-10: Student Statuses
         for i, db_col in enumerate(STUDENTS.values()):
             with r_cols[i+1]:
                 val = task.get(db_col, 0)
@@ -160,7 +157,7 @@ if tasks:
 # Sidebar Form
 with st.sidebar:
     st.markdown("<h2 style='text-align:center;'>אפסילון</h2>", unsafe_allow_html=True)
-    if st.button("🔄 רענן נתונים", use_container_width=True): st.rerun()
+    if st.button("🔄 רענן נתונים כעת", use_container_width=True): st.rerun()
     st.markdown("---")
     with st.form("new_task", clear_on_submit=True):
         st.write("### ➕ מטלה חדשה")
