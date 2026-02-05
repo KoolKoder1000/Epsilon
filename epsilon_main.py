@@ -22,7 +22,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 3. CSS (Spacing & Font Fixes) ---
+# --- 3. CSS (UI Fixes) ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp {
@@ -44,12 +44,11 @@ st.markdown("""
     div.stButton > button {
         width: 100% !important;
         min-width: 60px !important; 
-        font-size: 0.7rem !important; /* Smaller font to fit Hebrew text */
+        font-size: 0.7rem !important;
         padding: 0px 2px !important;
         border-radius: 4px !important;
         font-weight: 700 !important;
         height: 38px !important;
-        overflow: hidden;
     }
 
     .main-title { text-align: center; margin-top: -30px !important; font-size: 3rem; font-weight: 800; color: white; }
@@ -65,9 +64,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. Sidebar: Add Task ---
+# --- 4. Sidebar ---
 with st.sidebar:
     st.markdown("<h2 style='text-align:center;'>אפסילון</h2>", unsafe_allow_html=True)
+    
+    if st.button("🔄 רענן נתונים", use_container_width=True):
+        st.rerun()
+
+    st.markdown("---")
+
     with st.form("new_task_form", clear_on_submit=True):
         st.write("### ➕ מטלה חדשה")
         subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
@@ -76,12 +81,14 @@ with st.sidebar:
         
         if st.form_submit_button("הוסף למערכת", use_container_width=True):
             if desc:
+                # We do not send 'id'; Supabase generates it via gen_random_uuid()
                 new_task = {
                     "subject": subj, "desc": desc, "due_date": str(due),
                     **{col: 0 for col in STUDENTS.values()}
                 }
                 try:
                     supabase.table("tasks").insert(new_task).execute()
+                    st.toast("המטלה נוספה בהצלחה!", icon="✅")
                     st.rerun()
                 except Exception as e:
                     st.error(f"שגיאה: {e}")
@@ -93,7 +100,7 @@ try:
     response = supabase.table("tasks").select("*").order("due_date").execute()
     tasks = response.data
 except Exception as e:
-    st.error(f"שגיאה: {e}")
+    st.error(f"שגיאה בטעינה: {e}")
     tasks = []
 
 if not tasks:
@@ -109,6 +116,7 @@ else:
 
     for task in tasks:
         row_cols = st.columns(grid_ratios, gap="small")
+        
         with row_cols[0]:
             sub_text, sub_btn = st.columns([5, 1])
             with sub_text:
@@ -124,10 +132,11 @@ else:
 
         for i, db_col in enumerate(STUDENTS.values()):
             with row_cols[i + 1]:
-                s_idx = task.get(db_col, 0)
-                s_data = STATUS_CONFIG[s_idx]
+                current_val = task.get(db_col, 0)
+                s_data = STATUS_CONFIG[current_val]
                 st.markdown(f'<div class="{s_data["class"]}"></div>', unsafe_allow_html=True)
                 if st.button(s_data["label"], key=f"btn_{task['id']}_{db_col}"):
-                    supabase.table("tasks").update({db_col: (s_idx + 1) % 3}).eq("id", task['id']).execute()
+                    new_val = (current_val + 1) % 3
+                    supabase.table("tasks").update({db_col: new_val}).eq("id", task['id']).execute()
                     st.rerun()
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
