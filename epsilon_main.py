@@ -6,8 +6,8 @@ from supabase import create_client
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Supabase Connection ---
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
+url = st.secrets["https://avbpfzxowhanymsifsll.supabase.co"]
+key = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2YnBmenhvd2hhbnltc2lmc2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTY5NTUsImV4cCI6MjA4NTg5Mjk1NX0.cgJB49ZwZVDhavxsiHXCBBu3LHQOJutZeEuUwQtYKRQ"]
 supabase = create_client(url, key)
 
 # Mapping English DB columns to Hebrew display names
