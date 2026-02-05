@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=30000, key="epsilon_perfect_center")
+st_autorefresh(interval=30000, key="epsilon_alignment_reversal")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Perfect Horizontal Symmetry ---
+# --- 4. CSS for Strict Horizontal Centering ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -34,57 +34,49 @@ st.markdown("""
         direction: rtl;
     }
 
-    /* Calendar Centering */
-    div[data-baseweb="popover"] {
-        position: fixed !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        z-index: 9999 !important;
-    }
-
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
 
-    /* THE FIX: Student Columns Symmetry */
+    /* THE CORE FIX: Force all column content to share the same horizontal center */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
-        align-items: center !important; /* Forces EVERYTHING to the horizontal center */
+        align-items: center !important; 
         justify-content: center !important;
         text-align: center !important;
         padding: 0 !important;
     }
 
-    .inline-name {
-        font-size: 0.75rem !important;
+    /* Student Name Header Styling */
+    .student-header {
+        font-size: 0.85rem !important;
         font-weight: 800;
         color: white;
         margin: 0 !important;
         padding: 0 !important;
-        line-height: 1.2 !important;
-        width: 100%;
-        display: block;
+        height: 40px; /* Fixed height for top alignment */
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    /* Ensure button container doesn't add offset */
+    /* Button Styling */
     div.stButton {
         display: flex !important;
         justify-content: center !important;
         width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
     }
 
     div.stButton > button {
         width: 24px !important;
         height: 24px !important;
         min-width: 24px !important;
-        margin: 4px 0 0 0 !important; /* Only top margin for spacing */
-        border-radius: 4px !important;
+        border-radius: 6px !important;
         border: none !important;
+        padding: 0 !important;
     }
 
-    /* Task Card Alignment */
+    /* Task Card Alignment (First Column) */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
@@ -110,14 +102,25 @@ try:
 except:
     tasks = []
 
-# Balanced ratios: 1.8 for task info, 0.4 for each student
+# Unified Ratios for BOTH header and data rows
 grid_ratios = [1.8] + [0.4] * len(STUDENTS)
 
+# --- 5. THE HEADER ROW ---
+h_cols = st.columns(grid_ratios, gap="small")
+with h_cols[0]:
+    st.markdown("<div class='student-header' style='justify-content: flex-start !important; padding-right:15px;'>פרטי המטלה</div>", unsafe_allow_html=True)
+
+for i, name in enumerate(STUDENTS.keys()):
+    with h_cols[i+1]:
+        st.markdown(f"<div class='student-header'>{name}</div>", unsafe_allow_html=True)
+
+st.markdown("<div class='row-divider' style='margin-top:-5px;'></div>", unsafe_allow_html=True)
+
+# --- 6. THE DATA ROWS ---
 if tasks:
     for task in tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
-        # Task Description Column
         with r_cols[0]:
             c_bin, c_text = st.columns([0.15, 0.85])
             with c_bin:
@@ -130,23 +133,17 @@ if tasks:
                     <div style="font-size:0.75rem; color:#aaa;">{task.get('desc','')}</div>
                 </div>""", unsafe_allow_html=True)
 
-        # Student Status Columns (Name exactly centered over Button)
         for i, (name, db_col) in enumerate(STUDENTS.items()):
             with r_cols[i+1]:
-                # Text sits at horizontal center
-                st.markdown(f"<div class='inline-name'>{name}</div>", unsafe_allow_html=True)
-                
-                # Button sits at horizontal center
                 val = task.get(db_col, 0)
                 st.markdown(f'<div class="{STATUS_CONFIG[val]["class"]}"></div>', unsafe_allow_html=True)
-                st.button("", key=f"btn_{task['id']}_{db_col}")
-                
-                # Update logic (placed after to keep button UI clean)
-                # Note: In production, you'd wrap the button in an 'if' to trigger the update
+                if st.button("", key=f"btn_{task['id']}_{db_col}"):
+                    supabase.table("tasks").update({db_col: (val + 1) % 3}).eq("id", task['id']).execute()
+                    st.rerun()
                     
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# Sidebar
+# Sidebar for new tasks
 with st.sidebar:
     st.title("ניהול")
     with st.form("new_task"):
