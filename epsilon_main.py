@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh (30 Seconds) ---
-st_autorefresh(interval=30000, key="epsilon_final_centered")
+st_autorefresh(interval=5000, key="epsilon_final_centered")
 
 # --- 3. Supabase Connection ---
 url = st.secrets["SUPABASE_URL"]
