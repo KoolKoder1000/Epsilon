@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh (30 Seconds) ---
-st_autorefresh(interval=30000, key="epsilon_final_centered_names")
+st_autorefresh(interval=30000, key="epsilon_final_centered")
 
 # --- 3. Supabase Connection ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Centering & Compact Layout ---
+# --- 4. CSS for Centered Calendar & Compact Grid ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -34,7 +34,7 @@ st.markdown("""
         direction: rtl;
     }
 
-    /* Force Calendar to the Center */
+    /* THE FIX: Force the Date Picker / Calendar to the Center */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
@@ -48,33 +48,15 @@ st.markdown("""
         font-size: 3rem; font-weight: 900; color: white; 
     }
 
-    /* THE FIX: Perfectly Centered Student Headers */
     .student-header {
         font-size: 0.9rem !important;
         font-weight: 800; color: white;
-        text-align: center !important; /* Horizontal center */
-        display: flex !important;
-        justify-content: center !important; /* Flex center */
+        text-align: center !important;
         white-space: nowrap !important;
         padding-top: 35px;
-        width: 100%;
     }
 
-    /* Center the columns themselves */
-    [data-testid="column"] {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        padding-left: 1px !important;
-        padding-right: 1px !important;
-    }
-
-    /* Keep Task Details Aligned Right */
-    [data-testid="column"]:first-child {
-        align-items: flex-start !important;
-    }
-
-    /* Small Square Buttons */
+    /* Compact Squares */
     div.stButton > button {
         width: 24px !important;
         height: 24px !important;
@@ -98,6 +80,12 @@ st.markdown("""
         height: 22px !important;
     }
 
+    /* Column Tightening */
+    [data-testid="column"] {
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+    }
+
     /* Status Colors */
     div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; }
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; }
@@ -110,9 +98,9 @@ st.markdown("""
         padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        width: 100%;
+        min-width: 120px;
     }
-    .row-divider { margin: 6px 0; border-bottom: 1px solid #222; width: 100%; }
+    .row-divider { margin: 6px 0; border-bottom: 1px solid #222; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -129,8 +117,7 @@ grid_ratios = [1.5] + [0.5] * len(STUDENTS)
 cols = st.columns(grid_ratios, gap="small")
 
 with cols[0]:
-    # Custom alignment for the first header to stay right-aligned
-    st.markdown("<p class='student-header' style='justify-content: flex-start !important; padding-right:5px;'>פרטי המטלה</p>", unsafe_allow_html=True)
+    st.markdown("<p class='student-header' style='text-align:right !important; padding-right:5px;'>פרטי המטלה</p>", unsafe_allow_html=True)
 
 for i, name in enumerate(STUDENTS.keys()):
     with cols[i+1]:
@@ -149,3 +136,35 @@ if tasks:
                 st.markdown('<div class="trash-zone">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{task['id']}"):
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+            with c_text:
+                st.markdown(f"""<div class="task-card">
+                    <div style="font-weight:800; font-size:0.8rem; color:white;">{task.get('subject','')}</div>
+                    <div style="font-size:0.7rem; color:#aaa;">{task.get('desc','')}</div>
+                    <div style="font-size:0.6rem; color:#444;">📅 {task.get('due_date','')}</div>
+                </div>""", unsafe_allow_html=True)
+
+        for i, db_col in enumerate(STUDENTS.values()):
+            with r_cols[i+1]:
+                val = task.get(db_col, 0)
+                st.markdown(f'<div class="{STATUS_CONFIG[val]["class"]}"></div>', unsafe_allow_html=True)
+                if st.button("", key=f"btn_{task['id']}_{db_col}", help=STATUS_CONFIG[val]["label"]):
+                    supabase.table("tasks").update({db_col: (val + 1) % 3}).eq("id", task['id']).execute()
+                    st.rerun()
+        st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
+
+# Sidebar Form
+with st.sidebar:
+    st.markdown("<h2 style='text-align:center;'>אפסילון</h2>", unsafe_allow_html=True)
+    st.markdown("---")
+    with st.form("new_task_form", clear_on_submit=True):
+        st.write("### ➕ מטלה חדשה")
+        subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
+        desc = st.text_input("תיאור")
+        due = st.date_input("תאריך הגשה", value=datetime.today())
+        if st.form_submit_button("הוסף", use_container_width=True):
+            if desc:
+                payload = {"subject": subj, "desc": desc, "due_date": str(due), **{c: 0 for c in STUDENTS.values()}}
+                supabase.table("tasks").insert(payload).execute()
+                st.rerun()
