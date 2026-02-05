@@ -6,12 +6,10 @@ from supabase import create_client
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Supabase Connection ---
-# Ensure these names match your Secrets in Streamlit Cloud
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-# Mapping Display Name (Hebrew) -> Database Column Name (English/Lowercase)
 STUDENTS = {
     "יונתן": "yonatan", "יותם": "yotam", "מתאו": "mateo", 
     "עמית": "amit", "סול": "sol", "הדר": "hadar", 
@@ -24,7 +22,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 3. CSS (Layout & RTL Fixes) ---
+# --- 3. CSS (Spacing & Font Fixes) ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp {
@@ -45,12 +43,13 @@ st.markdown("""
     
     div.stButton > button {
         width: 100% !important;
-        min-width: 65px !important; 
-        font-size: 0.75rem !important;
-        padding: 0px !important;
+        min-width: 60px !important; 
+        font-size: 0.7rem !important; /* Smaller font to fit Hebrew text */
+        padding: 0px 2px !important;
         border-radius: 4px !important;
         font-weight: 700 !important;
         height: 38px !important;
+        overflow: hidden;
     }
 
     .main-title { text-align: center; margin-top: -30px !important; font-size: 3rem; font-weight: 800; color: white; }
@@ -77,19 +76,15 @@ with st.sidebar:
         
         if st.form_submit_button("הוסף למערכת", use_container_width=True):
             if desc:
-                # Ensure keys here match your Supabase column names EXACTLY
                 new_task = {
-                    "subject": subj,
-                    "desc": desc,
-                    "due_date": str(due),
-                    "yonatan": 0, "yotam": 0, "mateo": 0, "amit": 0, "sol": 0,
-                    "hadar": 0, "shlomo": 0, "tamar": 0, "ori": 0, "ofir": 0
+                    "subject": subj, "desc": desc, "due_date": str(due),
+                    **{col: 0 for col in STUDENTS.values()}
                 }
                 try:
                     supabase.table("tasks").insert(new_task).execute()
                     st.rerun()
                 except Exception as e:
-                    st.error(f"שגיאה בהוספת מטלה: {e}")
+                    st.error(f"שגיאה: {e}")
 
 # --- 5. Main Content ---
 st.markdown("<h1 class='main-title'>אפסילון</h1>", unsafe_allow_html=True)
@@ -98,7 +93,7 @@ try:
     response = supabase.table("tasks").select("*").order("due_date").execute()
     tasks = response.data
 except Exception as e:
-    st.error(f"שגיאה בטעינת נתונים: {e}")
+    st.error(f"שגיאה: {e}")
     tasks = []
 
 if not tasks:
@@ -118,7 +113,7 @@ else:
             sub_text, sub_btn = st.columns([5, 1])
             with sub_text:
                 st.markdown(f"""<div class="task-container">
-                    <div class="task-subject">{task.get('subject', 'N/A')}</div>
+                    <div class="task-subject">{task.get('subject', '')}</div>
                     <div style="color:#eee; font-size:0.8rem;">{task.get('desc', '')}</div>
                     <div style="color:#888; font-size:0.7rem;">📅 {task.get('due_date', '')}</div>
                 </div>""", unsafe_allow_html=True)
@@ -127,13 +122,12 @@ else:
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
                     st.rerun()
 
-        for i, (heb_name, db_col) in enumerate(STUDENTS.items()):
+        for i, db_col in enumerate(STUDENTS.values()):
             with row_cols[i + 1]:
                 s_idx = task.get(db_col, 0)
                 s_data = STATUS_CONFIG[s_idx]
                 st.markdown(f'<div class="{s_data["class"]}"></div>', unsafe_allow_html=True)
                 if st.button(s_data["label"], key=f"btn_{task['id']}_{db_col}"):
-                    new_idx = (s_idx + 1) % 3
-                    supabase.table("tasks").update({db_col: new_idx}).eq("id", task['id']).execute()
+                    supabase.table("tasks").update({db_col: (s_idx + 1) % 3}).eq("id", task['id']).execute()
                     st.rerun()
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
