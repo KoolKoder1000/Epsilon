@@ -6,11 +6,12 @@ from supabase import create_client
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Supabase Connection ---
-# Make sure these match the names in your Streamlit Secrets dashboard!
+# Ensure these names match your Secrets in Streamlit Cloud
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
+# Mapping Display Name (Hebrew) -> Database Column Name (English/Lowercase)
 STUDENTS = {
     "יונתן": "yonatan", "יותם": "yotam", "מתאו": "mateo", 
     "עמית": "amit", "סול": "sol", "הדר": "hadar", 
@@ -23,7 +24,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 3. CSS (Sidebar Left & Column Styling) ---
+# --- 3. CSS (Layout & RTL Fixes) ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp {
@@ -42,7 +43,6 @@ st.markdown("""
         padding: 0px 1px !important;
     }
     
-    /* FIX: Prevents text from squishing in the buttons */
     div.stButton > button {
         width: 100% !important;
         min-width: 65px !important; 
@@ -55,7 +55,6 @@ st.markdown("""
 
     .main-title { text-align: center; margin-top: -30px !important; font-size: 3rem; font-weight: 800; color: white; }
     
-    /* Status Colors */
     div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; color: white !important; }
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; color: white !important; }
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; color: white !important; }
@@ -78,18 +77,29 @@ with st.sidebar:
         
         if st.form_submit_button("הוסף למערכת", use_container_width=True):
             if desc:
+                # Ensure keys here match your Supabase column names EXACTLY
                 new_task = {
-                    "subject": subj, "desc": desc, "due_date": str(due),
-                    **{col: 0 for col in STUDENTS.values()}
+                    "subject": subj,
+                    "desc": desc,
+                    "due_date": str(due),
+                    "yonatan": 0, "yotam": 0, "mateo": 0, "amit": 0, "sol": 0,
+                    "hadar": 0, "shlomo": 0, "tamar": 0, "ori": 0, "ofir": 0
                 }
-                supabase.table("tasks").insert(new_task).execute()
-                st.rerun()
+                try:
+                    supabase.table("tasks").insert(new_task).execute()
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"שגיאה בהוספת מטלה: {e}")
 
 # --- 5. Main Content ---
 st.markdown("<h1 class='main-title'>אפסילון</h1>", unsafe_allow_html=True)
 
-response = supabase.table("tasks").select("*").order("due_date").execute()
-tasks = response.data
+try:
+    response = supabase.table("tasks").select("*").order("due_date").execute()
+    tasks = response.data
+except Exception as e:
+    st.error(f"שגיאה בטעינת נתונים: {e}")
+    tasks = []
 
 if not tasks:
     st.info("אין כרגע מטלות במערכת.")
@@ -108,9 +118,9 @@ else:
             sub_text, sub_btn = st.columns([5, 1])
             with sub_text:
                 st.markdown(f"""<div class="task-container">
-                    <div class="task-subject">{task['subject']}</div>
-                    <div style="color:#eee; font-size:0.8rem;">{task['desc']}</div>
-                    <div style="color:#888; font-size:0.7rem;">📅 {task['due_date']}</div>
+                    <div class="task-subject">{task.get('subject', 'N/A')}</div>
+                    <div style="color:#eee; font-size:0.8rem;">{task.get('desc', '')}</div>
+                    <div style="color:#888; font-size:0.7rem;">📅 {task.get('due_date', '')}</div>
                 </div>""", unsafe_allow_html=True)
             with sub_btn:
                 if st.button("🗑️", key=f"del_{task['id']}"):
@@ -119,7 +129,7 @@ else:
 
         for i, (heb_name, db_col) in enumerate(STUDENTS.items()):
             with row_cols[i + 1]:
-                s_idx = task[db_col]
+                s_idx = task.get(db_col, 0)
                 s_data = STATUS_CONFIG[s_idx]
                 st.markdown(f'<div class="{s_data["class"]}"></div>', unsafe_allow_html=True)
                 if st.button(s_data["label"], key=f"btn_{task['id']}_{db_col}"):
