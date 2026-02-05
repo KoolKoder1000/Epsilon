@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh (30 Seconds) ---
-st_autorefresh(interval=5000, key="epsilon_compact_fixed")
+st_autorefresh(interval=30000, key="epsilon_final_centered")
 
 # --- 3. Supabase Connection ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,12 +26,21 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Minimal Width & Padding ---
+# --- 4. CSS for Centered Calendar & Compact Grid ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
         font-family: 'Calibri', 'Segoe UI', sans-serif !important;
         direction: rtl;
+    }
+
+    /* THE FIX: Force the Date Picker / Calendar to the Center */
+    div[data-baseweb="popover"] {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 9999 !important;
     }
 
     .main-title { 
@@ -40,26 +49,26 @@ st.markdown("""
     }
 
     .student-header {
-        font-size: 0.95rem !important;
+        font-size: 0.9rem !important;
         font-weight: 800; color: white;
         text-align: center !important;
-        white-space: nowrap !important; /* Prevents names from breaking */
+        white-space: nowrap !important;
         padding-top: 35px;
     }
 
-    /* Small Square Buttons */
+    /* Compact Squares */
     div.stButton > button {
-        width: 26px !important;
-        height: 26px !important;
-        min-width: 26px !important;
-        border-radius: 6px !important;
+        width: 24px !important;
+        height: 24px !important;
+        min-width: 24px !important;
+        border-radius: 4px !important;
         margin: auto !important;
         border: none !important;
     }
 
-    /* Trash Bin Area - Maximizing space */
+    /* Trash Bin Area */
     .trash-zone {
-        padding-left: 10px !important; 
+        padding-left: 8px !important; 
         display: flex;
         justify-content: center;
     }
@@ -67,11 +76,11 @@ st.markdown("""
         background-color: transparent !important;
         border: 1px solid #333 !important;
         color: #555 !important;
-        width: 24px !important;
-        height: 24px !important;
+        width: 22px !important;
+        height: 22px !important;
     }
 
-    /* Column Gaps */
+    /* Column Tightening */
     [data-testid="column"] {
         padding-left: 1px !important;
         padding-right: 1px !important;
@@ -82,16 +91,16 @@ st.markdown("""
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; }
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; }
 
-    /* Task Card - Minimally Small */
+    /* Minimized Task Card */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
-        padding: 4px 8px; /* Reduced padding */
+        padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        min-width: 140px; /* Ensures it doesn't disappear completely */
+        min-width: 120px;
     }
-    .row-divider { margin: 8px 0; border-bottom: 1px solid #222; }
+    .row-divider { margin: 6px 0; border-bottom: 1px solid #222; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -103,7 +112,7 @@ try:
 except:
     tasks = []
 
-# Header Row: Detail column (1.5) vs Student blocks (0.5 each)
+# grid_ratios: 1.5 for assignments makes it minimally wide
 grid_ratios = [1.5] + [0.5] * len(STUDENTS)
 cols = st.columns(grid_ratios, gap="small")
 
@@ -116,14 +125,13 @@ for i, name in enumerate(STUDENTS.keys()):
 
 st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# Task Data
+# Task Rendering
 if tasks:
     for task in tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
-        # Details & Trash
         with r_cols[0]:
-            c_bin, c_text = st.columns([0.2, 0.8]) # Flipped to keep bin near the border
+            c_bin, c_text = st.columns([0.2, 0.8])
             with c_bin:
                 st.markdown('<div class="trash-zone">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{task['id']}"):
@@ -132,12 +140,11 @@ if tasks:
                 st.markdown('</div>', unsafe_allow_html=True)
             with c_text:
                 st.markdown(f"""<div class="task-card">
-                    <div style="font-weight:800; font-size:0.85rem; color:white;">{task.get('subject','')}</div>
-                    <div style="font-size:0.75rem; color:#aaa;">{task.get('desc','')}</div>
-                    <div style="font-size:0.65rem; color:#555;">📅 {task.get('due_date','')}</div>
+                    <div style="font-weight:800; font-size:0.8rem; color:white;">{task.get('subject','')}</div>
+                    <div style="font-size:0.7rem; color:#aaa;">{task.get('desc','')}</div>
+                    <div style="font-size:0.6rem; color:#444;">📅 {task.get('due_date','')}</div>
                 </div>""", unsafe_allow_html=True)
 
-        # Status Grid
         for i, db_col in enumerate(STUDENTS.values()):
             with r_cols[i+1]:
                 val = task.get(db_col, 0)
@@ -147,7 +154,7 @@ if tasks:
                     st.rerun()
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# Sidebar
+# Sidebar Form
 with st.sidebar:
     st.markdown("<h2 style='text-align:center;'>אפסילון</h2>", unsafe_allow_html=True)
     st.markdown("---")
