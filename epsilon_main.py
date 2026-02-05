@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=5000, key="epsilon_alignment_reversal")
+st_autorefresh(interval=30000, key="epsilon_rotated_names")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Strict Horizontal Centering ---
+# --- 4. CSS for Rotated Headers & Alignment ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -36,7 +36,24 @@ st.markdown("""
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
 
-    /* THE CORE FIX: Force all column content to share the same horizontal center */
+    /* THE FIX: Vertical Text Rotation */
+    .student-header {
+        font-size: 0.85rem !important;
+        font-weight: 800;
+        color: white;
+        height: 80px; /* Increased height to fit vertical names */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        /* Rotation Logic */
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        transform: rotate(180deg); /* Adjusts direction to read top-to-bottom */
+        white-space: nowrap;
+    }
+
+    /* Column Symmetry */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -46,37 +63,16 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* Student Name Header Styling */
-    .student-header {
-        font-size: 0.85rem !important;
-        font-weight: 800;
-        color: white;
-        margin: 0 !important;
-        padding: 0 !important;
-        height: 40px; /* Fixed height for top alignment */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
     /* Button Styling */
-    div.stButton {
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
-        margin: 0 !important;
-    }
-
     div.stButton > button {
         width: 24px !important;
         height: 24px !important;
         min-width: 24px !important;
         border-radius: 6px !important;
         border: none !important;
-        padding: 0 !important;
     }
 
-    /* Task Card Alignment (First Column) */
+    /* Task Card Alignment */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
@@ -102,19 +98,20 @@ try:
 except:
     tasks = []
 
-# Unified Ratios for BOTH header and data rows
-grid_ratios = [1.8] + [0.4] * len(STUDENTS)
+# Tightened ratios: 2.0 for tasks, 0.3 for students due to rotation
+grid_ratios = [2.0] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
 h_cols = st.columns(grid_ratios, gap="small")
 with h_cols[0]:
-    st.markdown("<div class='student-header' style='justify-content: flex-start !important; padding-right:15px;'>פרטי המטלה</div>", unsafe_allow_html=True)
+    # Keeping the "Details" header horizontal
+    st.markdown("<div style='font-weight:800; color:white; padding-top:40px; text-align:right; padding-right:15px;'>פרטי המטלה</div>", unsafe_allow_html=True)
 
 for i, name in enumerate(STUDENTS.keys()):
     with h_cols[i+1]:
         st.markdown(f"<div class='student-header'>{name}</div>", unsafe_allow_html=True)
 
-st.markdown("<div class='row-divider' style='margin-top:-5px;'></div>", unsafe_allow_html=True)
+st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
 # --- 6. THE DATA ROWS ---
 if tasks:
@@ -143,9 +140,9 @@ if tasks:
                     
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# Sidebar for new tasks
+# Sidebar
 with st.sidebar:
-    st.title("")
+    st.title("ניהול")
     with st.form("new_task"):
         subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
         desc = st.text_input("תיאור")
