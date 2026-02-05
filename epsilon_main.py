@@ -22,123 +22,88 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 3. Custom CSS (Calibri & Alignment) ---
+# --- 3. Refined CSS ---
 st.markdown("""
 <style>
-    /* Global Calibri Font */
-    @import url('https://fonts.cdnfonts.com/css/calibri');
-    
-    html, body, [class*="css"], .stApp, button, input, select, textarea {
-        font-family: 'Calibri', sans-serif !important;
+    /* Global Font Fix */
+    html, body, [class*="css"], .stApp, button, p, div {
+        font-family: 'Calibri', 'Segoe UI', sans-serif !important;
         direction: rtl;
-        text-align: right;
     }
-    
-    /* Sidebar & Popover Fixes */
-    [data-testid="stSidebar"] { left: 0 !important; right: auto !important; }
-    [data-testid="stSidebarCollapsedControl"] { left: 20px !important; right: auto !important; }
-    
+
+    /* Absolute Center Calendar */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        z-index: 9999 !important;
     }
 
-    /* Column alignment & Student Name Centering */
-    [data-testid="column"] {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;    
-        justify-content: center !important;
-        padding: 0px 1px !important;
-    }
-    
+    /* Title & Name Spacing */
     .main-title { 
         text-align: center; 
-        margin-top: -30px !important; 
-        margin-bottom: 50px !important; 
-        font-size: 3.8rem; 
+        margin-top: -40px !important; 
+        font-size: 3.5rem; 
         font-weight: 900; 
         color: white; 
     }
 
-    .header-text {
-        font-size: 1.25rem !important; 
-        font-weight: 800 !important;
-        color: white !important;
+    .student-header {
+        font-size: 1.3rem !important;
+        font-weight: 800;
+        color: white;
         text-align: center !important;
+        padding-top: 45px; /* Pushes names down from title */
+        padding-bottom: 10px;
         width: 100%;
-        padding-top: 30px; 
-        padding-bottom: 15px;
     }
 
-    /* Status Button Styling */
+    /* Button Layout & Text Fix */
     div.stButton > button {
         width: 100% !important;
-        font-size: 0.75rem !important;
-        border-radius: 4px !important;
+        font-size: 0.7rem !important; /* Smaller to prevent wrap */
         font-weight: 700 !important;
-        height: 38px !important;
+        height: 36px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        border-radius: 6px !important;
     }
 
-    /* Padding between Trash and First Status Button */
-    .status-col-first {
-        margin-left: 15px !important;
+    /* Trash Button & Gap */
+    .del-zone {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-left: 20px; /* Gap between trash and first status */
     }
-
-    /* Delete Button Styling */
-    .delete-container button {
+    .del-zone button {
         background-color: #262730 !important;
         border: 1px solid #444 !important;
         color: #888 !important;
-        height: 35px !important;
-        width: 35px !important;
-        min-width: 35px !important;
+        width: 34px !important;
+        min-width: 34px !important;
     }
-    .delete-container button:hover {
-        border-color: #ff4b4b !important;
-        color: #ff4b4b !important;
-    }
-    
+
     /* Status Colors */
     div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; color: white !important; }
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; color: white !important; }
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; color: white !important; }
 
-    /* Task Card */
-    .task-container { 
-        background-color: #1e1e1e; 
-        border-right: 4px solid #ffffff; 
-        padding: 10px 14px; 
-        border-radius: 4px; 
-        width: 100%; 
+    /* Task Box */
+    .task-card {
+        background-color: #1e1e1e;
+        border-right: 5px solid #ffffff;
+        padding: 12px;
+        border-radius: 4px;
+        width: 100%;
+        text-align: right;
     }
-    .task-subject { color: white !important; font-weight: 800; font-size: 1rem; }
-    .row-divider { margin: 15px 0; border-bottom: 1px solid #333; width: 100%; }
-    .m-red, .m-orange, .m-green { display: none; }
+    .row-divider { margin: 15px 0; border-bottom: 1px solid #333; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. Sidebar ---
-with st.sidebar:
-    st.markdown("<h2 style='text-align:center;'>אפסילון</h2>", unsafe_allow_html=True)
-    if st.button("🔄 רענן נתונים", use_container_width=True):
-        st.rerun()
-    st.markdown("---")
-    with st.form("new_task_form", clear_on_submit=True):
-        st.write("### ➕ מטלה חדשה")
-        subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
-        desc = st.text_input("תיאור קצר")
-        due = st.date_input("תאריך הגשה", value=datetime.today())
-        if st.form_submit_button("הוסף למערכת", use_container_width=True):
-            if desc:
-                new_task = {"subject": subj, "desc": desc, "due_date": str(due), **{col: 0 for col in STUDENTS.values()}}
-                supabase.table("tasks").insert(new_task).execute()
-                st.rerun()
-
-# --- 5. Main Content ---
+# --- 4. Main UI ---
 st.markdown("<h1 class='main-title'>אפסילון</h1>", unsafe_allow_html=True)
 
 try:
@@ -146,44 +111,64 @@ try:
 except:
     tasks = []
 
+# Header Row
+# Adjusted ratios: 2.2 for details provides just enough space for Hebrew text
+grid_ratios = [2.2] + [1] * len(STUDENTS)
+cols = st.columns(grid_ratios, gap="small")
+
+with cols[0]:
+    st.markdown("<p class='student-header' style='text-align:right !important;'>פרטי המטלה</p>", unsafe_allow_html=True)
+
+for i, name in enumerate(STUDENTS.keys()):
+    with cols[i+1]:
+        st.markdown(f"<div class='student-header'>{name}</div>", unsafe_allow_html=True)
+
+st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
+
+# Task Data
 if tasks:
-    # 2.5 ratio for details keeps the column tight and minimizes empty space
-    grid_ratios = [2.5] + [1] * len(STUDENTS)
-    h_cols = st.columns(grid_ratios, gap="small")
-    
-    with h_cols[0]: st.markdown("<p class='header-text'>פרטי המטלה</p>", unsafe_allow_html=True)
-    for i, name in enumerate(STUDENTS.keys()):
-        with h_cols[i+1]: st.markdown(f"<div class='header-text'>{name}</div>", unsafe_allow_html=True)
-
-    st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
-
     for task in tasks:
-        row_cols = st.columns(grid_ratios, gap="small")
+        r_cols = st.columns(grid_ratios, gap="small")
         
-        with row_cols[0]:
-            main_card, del_area = st.columns([0.88, 0.12])
-            with main_card:
-                st.markdown(f"""<div class="task-container">
-                    <div class="task-subject">{task.get('subject', '')}</div>
-                    <div style="color:#eee; font-size:0.85rem;">{task.get('desc', '')}</div>
-                    <div style="color:#888; font-size:0.75rem;">📅 {task.get('due_date', '')}</div>
+        # Column 0: Details + Delete
+        with r_cols[0]:
+            c_text, c_del = st.columns([0.8, 0.2])
+            with c_text:
+                st.markdown(f"""<div class="task-card">
+                    <div style="font-weight:800; font-size:1rem;">{task.get('subject','')}</div>
+                    <div style="font-size:0.8rem; color:#ccc;">{task.get('desc','')}</div>
+                    <div style="font-size:0.75rem; color:#888;">📅 {task.get('due_date','')}</div>
                 </div>""", unsafe_allow_html=True)
-            with del_area:
-                st.markdown('<div class="delete-container">', unsafe_allow_html=True)
+            with c_del:
+                st.markdown('<div class="del-zone">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{task['id']}"):
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
 
+        # Columns 1-10: Student Statuses
         for i, db_col in enumerate(STUDENTS.values()):
-            with row_cols[i + 1]:
+            with r_cols[i+1]:
                 val = task.get(db_col, 0)
-                # Adding the padding class to the first student column
-                extra_class = "status-col-first" if i == 0 else ""
-                st.markdown(f'<div class="{STATUS_CONFIG[val]["class"]} {extra_class}"></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="{STATUS_CONFIG[val]["class"]}"></div>', unsafe_allow_html=True)
                 if st.button(STATUS_CONFIG[val]["label"], key=f"btn_{task['id']}_{db_col}"):
-                    supabase.table("tasks").update({db_col: (val + 1) % 3}).eq("id", task['id']).execute()
+                    new_val = (val + 1) % 3
+                    supabase.table("tasks").update({db_col: new_val}).eq("id", task['id']).execute()
                     st.rerun()
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
-else:
-    st.info("אין כרגע מטלות במערכת.")
+
+# Sidebar Form
+with st.sidebar:
+    st.markdown("<h2 style='text-align:center;'>אפסילון</h2>", unsafe_allow_html=True)
+    if st.button("🔄 רענן נתונים", use_container_width=True): st.rerun()
+    st.markdown("---")
+    with st.form("new_task", clear_on_submit=True):
+        st.write("### ➕ מטלה חדשה")
+        subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
+        desc = st.text_input("תיאור")
+        due = st.date_input("תאריך", value=datetime.today())
+        if st.form_submit_button("הוסף", use_container_width=True):
+            if desc:
+                payload = {"subject": subj, "desc": desc, "due_date": str(due), **{c: 0 for c in STUDENTS.values()}}
+                supabase.table("tasks").insert(payload).execute()
+                st.rerun()
