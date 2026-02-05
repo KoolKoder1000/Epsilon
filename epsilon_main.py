@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh (30 Seconds) ---
-st_autorefresh(interval=30000, key="live_refresh")
+st_autorefresh(interval=30000, key="minimal_refresh")
 
 # --- 3. Supabase Connection ---
 url = st.secrets["SUPABASE_URL"]
@@ -20,21 +20,22 @@ STUDENTS = {
     "שלמה": "shlomo", "תמר": "tamar", "אורי": "ori", "אופיר": "ofir"
 }
 
+# Labels are now used only for the 'hover' tooltip
 STATUS_CONFIG = [
     {"label": "לא התחיל", "class": "m-red"},
     {"label": "בתהליך", "class": "m-orange"},
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. 100% Zoom Optimized CSS ---
+# --- 4. Minimalist CSS ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
-        font-family: 'Calibri', 'Segoe UI', sans-serif !important;
+        font-family: 'Calibri', sans-serif !important;
         direction: rtl;
     }
 
-    /* Center Calendar */
+    /* Vertical Center Calendar */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important; left: 50% !important;
@@ -51,50 +52,47 @@ st.markdown("""
         font-weight: 800; color: white;
         text-align: center !important;
         padding-top: 40px; padding-bottom: 5px;
-        width: 100%;
     }
 
-    /* Small, tight buttons for 100% zoom */
+    /* Square Status Buttons */
     div.stButton > button {
-        width: 100% !important;
-        font-size: 0.65rem !important; 
-        font-weight: 700 !important;
+        width: 32px !important;
         height: 32px !important;
-        white-space: nowrap !important;
+        min-width: 32px !important;
         border-radius: 4px !important;
+        margin: auto !important;
+        border: none !important;
     }
 
-    /* Fixed Delete Button Layout */
-    .task-row-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .del-btn-style button {
+    /* Trash Button - Small & Subtle */
+    .del-btn-container button {
         background-color: transparent !important;
-        border: 1px solid #444 !important;
-        color: #888 !important;
-        width: 30px !important;
-        min-width: 30px !important;
-        height: 30px !important;
+        border: 1px solid #333 !important;
+        color: #555 !important;
+        font-size: 0.8rem !important;
+        width: 28px !important;
+        height: 28px !important;
+    }
+    .del-btn-container button:hover {
+        border-color: #ff4b4b !important;
+        color: #ff4b4b !important;
     }
 
-    /* Status Colors */
-    div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; color: white !important; }
-    div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; color: white !important; }
-    div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; color: white !important; }
+    /* Colors */
+    div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; }
+    div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; }
+    div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; }
 
     .task-card {
         background-color: #1e1e1e;
         border-right: 4px solid #ffffff;
         padding: 8px 12px;
         border-radius: 4px;
-        flex-grow: 1;
         text-align: right;
+        width: 100%;
     }
-    .row-divider { margin: 10px 0; border-bottom: 1px solid #333; }
+    
+    .row-divider { margin: 8px 0; border-bottom: 1px solid #222; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -106,12 +104,12 @@ try:
 except:
     tasks = []
 
-# Header Row - Ratio 2.0 is safer for 100% zoom
-grid_ratios = [2.0] + [1] * len(STUDENTS)
+# Header Row
+grid_ratios = [3.5] + [1] * len(STUDENTS)
 cols = st.columns(grid_ratios, gap="small")
 
 with cols[0]:
-    st.markdown("<p class='student-header' style='text-align:right !important; padding-right:10px;'>פרטי המטלה</p>", unsafe_allow_html=True)
+    st.markdown("<p class='student-header' style='text-align:right !important; padding-right:15px;'>פרטי המטלה</p>", unsafe_allow_html=True)
 
 for i, name in enumerate(STUDENTS.keys()):
     with cols[i+1]:
@@ -119,42 +117,43 @@ for i, name in enumerate(STUDENTS.keys()):
 
 st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# Task Data
+# Task List
 if tasks:
     for task in tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
-        # Details & Trash
+        # Details & Delete
         with r_cols[0]:
-            # Sub-columns to keep trash and card on one line
-            c_del, c_text = st.columns([0.15, 0.85])
+            c_text, c_del = st.columns([0.9, 0.1])
+            with c_text:
+                st.markdown(f"""<div class="task-card">
+                    <div style="font-weight:800; font-size:1rem; color:white;">{task.get('subject','')}</div>
+                    <div style="font-size:0.85rem; color:#bbb;">{task.get('desc','')}</div>
+                    <div style="font-size:0.75rem; color:#777;">📅 {task.get('due_date','')}</div>
+                </div>""", unsafe_allow_html=True)
             with c_del:
-                st.markdown('<div class="del-btn-style">', unsafe_allow_html=True)
+                st.markdown('<div class="del-btn-container">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{task['id']}"):
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
-            with c_text:
-                st.markdown(f"""<div class="task-card">
-                    <div style="font-weight:800; font-size:0.9rem;">{task.get('subject','')}</div>
-                    <div style="font-size:0.75rem; color:#ccc;">{task.get('desc','')}</div>
-                    <div style="font-size:0.7rem; color:#888;">📅 {task.get('due_date','')}</div>
-                </div>""", unsafe_allow_html=True)
 
-        # Student Statuses
+        # Color-Only Status Buttons
         for i, db_col in enumerate(STUDENTS.values()):
             with r_cols[i+1]:
                 val = task.get(db_col, 0)
-                st.markdown(f'<div class="{STATUS_CONFIG[val]["class"]}"></div>', unsafe_allow_html=True)
-                if st.button(STATUS_CONFIG[val]["label"], key=f"btn_{task['id']}_{db_col}"):
-                    supabase.table("tasks").update({db_col: (val + 1) % 3}).eq("id", task['id']).execute()
+                config = STATUS_CONFIG[val]
+                st.markdown(f'<div class="{config["class"]}"></div>', unsafe_allow_html=True)
+                # Empty string as label, config["label"] as hover tooltip
+                if st.button("", key=f"btn_{task['id']}_{db_col}", help=config["label"]):
+                    new_val = (val + 1) % 3
+                    supabase.table("tasks").update({db_col: new_val}).eq("id", task['id']).execute()
                     st.rerun()
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
     st.markdown("<h2 style='text-align:center;'>אפסילון</h2>", unsafe_allow_html=True)
-    if st.button("🔄 רענן נתונים", use_container_width=True): st.rerun()
     st.markdown("---")
     with st.form("new_task", clear_on_submit=True):
         st.write("### ➕ מטלה חדשה")
