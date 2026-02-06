@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=3000, key="epsilon_ultra_compact")
+st_autorefresh(interval=3000, key="epsilon_compact_final")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Compact Grid & Button Spacing ---
+# --- 4. CSS for Ultra-Compact Alignment ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -36,12 +36,12 @@ st.markdown("""
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
 
-    /* Vertical Text Rotation */
+    /* Vertical Names */
     .student-header {
         font-size: 0.85rem !important;
         font-weight: 800;
         color: white;
-        height: 80px;
+        height: 85px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -50,7 +50,7 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* Column Symmetry */
+    /* Column Symmetry & Pulling them together */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -58,18 +58,17 @@ st.markdown("""
         justify-content: center !important;
         text-align: center !important;
         padding: 0 !important;
+        min-width: 30px !important; /* Forces columns to be narrow */
     }
 
-    /* Button Styling with Manual Gap Control */
+    /* Button Styling: Creating the 'No-Touch' Zone */
     div.stButton > button {
         width: 24px !important;
         height: 24px !important;
         min-width: 24px !important;
         border-radius: 6px !important;
         border: none !important;
-        /* THE FIX: Manual spacing so they don't touch even with gap="none" */
-        margin-left: 2px !important;
-        margin-right: 2px !important;
+        margin: 0 3px !important; /* This 3px creates the gap between buttons */
     }
 
     /* Task Card Alignment */
@@ -98,26 +97,24 @@ try:
 except:
     tasks = []
 
-# MODIFIED: Reduced student ratio to 0.2 for maximum tightness
-grid_ratios = [3.0] + [0.2] * len(STUDENTS)
+# Balanced ratios: Much higher for details, very low for students
+grid_ratios = [4.0] + [0.25] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
-# Using gap="none" to pull columns together
-h_cols = st.columns(grid_ratios, gap="none")
+h_cols = st.columns(grid_ratios, gap="small")
 with h_cols[0]:
-    st.markdown("<div style='font-weight:800; color:white; padding-top:40px; text-align:right; padding-right:15px;'>פרטי המטלה</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-weight:800; color:white; padding-top:45px; text-align:right; padding-right:15px;'>פרטי המטלה</div>", unsafe_allow_html=True)
 
 for i, name in enumerate(STUDENTS.keys()):
     with h_cols[i+1]:
         st.markdown(f"<div class='student-header'>{name}</div>", unsafe_allow_html=True)
 
-st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
+st.markdown("<div class='row-divider' style='margin-top:-5px;'></div>", unsafe_allow_html=True)
 
 # --- 6. THE DATA ROWS ---
 if tasks:
     for task in tasks:
-        # Using gap="none" here as well
-        r_cols = st.columns(grid_ratios, gap="none")
+        r_cols = st.columns(grid_ratios, gap="small")
         
         with r_cols[0]:
             c_bin, c_text = st.columns([0.15, 0.85])
@@ -143,7 +140,7 @@ if tasks:
 
 # Sidebar
 with st.sidebar:
-    st.title("")
+    st.title("ניהול")
     with st.form("new_task"):
         subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
         desc = st.text_input("תיאור")
