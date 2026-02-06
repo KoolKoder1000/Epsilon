@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=5000, key="epsilon_centered_cal")
+st_autorefresh(interval=3000, key="epsilon_sidebar_swap")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Center Calendar & Shrunk Assignments ---
+# --- 4. CSS for Sidebar Swap & Alignment ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -34,8 +34,14 @@ st.markdown("""
         direction: rtl;
     }
 
-    /* THE FIX: Force Date Picker / Popover to Screen Center */
-    div[data-baseweb="popover"], div[data-testid="stDateInput"] + div {
+    /* THE FIX: Move Sidebar to the other side */
+    /* Streamlit's main container uses flex. We reverse the row direction. */
+    .stApp3 {
+        flex-direction: row-reverse !important;
+    }
+
+    /* Force Date Picker to Screen Center */
+    div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
         left: 50% !important;
@@ -78,7 +84,6 @@ st.markdown("""
         display: block !important;
         width: fit-content !important;
         min-width: 100px;
-        margin-right: auto; /* Aligns card to the left of its column (closer to buttons) */
     }
 
     /* Small Squares */
@@ -89,14 +94,6 @@ st.markdown("""
         border-radius: 4px !important;
         border: none !important;
         margin: 0 2px !important;
-    }
-
-    /* Trash Bin Styling */
-    .trash-btn button {
-        padding: 0 !important;
-        font-size: 0.8rem !important;
-        background: transparent !important;
-        border: none !important;
     }
 
     /* Status Colors */
@@ -115,7 +112,6 @@ try:
 except:
     tasks = []
 
-# Unified Ratios: Making the details column (0) even smaller to reduce empty space
 grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
@@ -135,16 +131,12 @@ if tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
         with r_cols[0]:
-            # Layout: Trash icon and then the details card
             c_bin, c_text = st.columns([0.2, 0.8])
             with c_bin:
-                st.markdown('<div class="trash-btn">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{task['id']}"):
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
             with c_text:
-                # Date is now inside the card next to description
                 st.markdown(f"""<div class="task-card">
                     <div style="font-weight:800; font-size:0.8rem; color:white;">{task.get('subject','')}</div>
                     <div style="font-size:0.7rem; color:#aaa;">{task.get('desc','')}</div>
@@ -163,7 +155,7 @@ if tasks:
 
 # Sidebar
 with st.sidebar:
-    st.title("")
+    st.title("ניהול")
     with st.form("new_task"):
         subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
         desc = st.text_input("תיאור")
