@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=5000, key="epsilon_rotated_names")
+st_autorefresh(interval=3000, key="epsilon_ultra_compact")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Rotated Headers & Alignment ---
+# --- 4. CSS for Compact Grid & Button Spacing ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -36,20 +36,17 @@ st.markdown("""
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
 
-    /* THE FIX: Vertical Text Rotation */
+    /* Vertical Text Rotation */
     .student-header {
         font-size: 0.85rem !important;
         font-weight: 800;
         color: white;
-        height: 80px; /* Increased height to fit vertical names */
+        height: 80px;
         display: flex;
         align-items: center;
         justify-content: center;
-        
-        /* Rotation Logic */
         writing-mode: vertical-rl;
-        text-orientation: mixed;
-        transform: rotate(180deg); /* Adjusts direction to read top-to-bottom */
+        transform: rotate(180deg);
         white-space: nowrap;
     }
 
@@ -63,13 +60,16 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* Button Styling */
+    /* Button Styling with Manual Gap Control */
     div.stButton > button {
         width: 24px !important;
         height: 24px !important;
         min-width: 24px !important;
         border-radius: 6px !important;
         border: none !important;
+        /* THE FIX: Manual spacing so they don't touch even with gap="none" */
+        margin-left: 2px !important;
+        margin-right: 2px !important;
     }
 
     /* Task Card Alignment */
@@ -98,13 +98,13 @@ try:
 except:
     tasks = []
 
-# Tightened ratios: 2.0 for tasks, 0.3 for students due to rotation
-grid_ratios = [2.0] + [0.3] * len(STUDENTS)
+# MODIFIED: Reduced student ratio to 0.2 for maximum tightness
+grid_ratios = [3.0] + [0.2] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
-h_cols = st.columns(grid_ratios, gap="small")
+# Using gap="none" to pull columns together
+h_cols = st.columns(grid_ratios, gap="none")
 with h_cols[0]:
-    # Keeping the "Details" header horizontal
     st.markdown("<div style='font-weight:800; color:white; padding-top:40px; text-align:right; padding-right:15px;'>פרטי המטלה</div>", unsafe_allow_html=True)
 
 for i, name in enumerate(STUDENTS.keys()):
@@ -116,7 +116,8 @@ st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 # --- 6. THE DATA ROWS ---
 if tasks:
     for task in tasks:
-        r_cols = st.columns(grid_ratios, gap="small")
+        # Using gap="none" here as well
+        r_cols = st.columns(grid_ratios, gap="none")
         
         with r_cols[0]:
             c_bin, c_text = st.columns([0.15, 0.85])
