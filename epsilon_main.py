@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=3000, key="epsilon_sidebar_force")
+st_autorefresh(interval=3000, key="epsilon_final_fix")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,32 +26,12 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Force Sidebar & Layout ---
+# --- 4. CSS for Layout & Alignment ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
         font-family: 'Calibri', 'Segoe UI', sans-serif !important;
         direction: rtl;
-    }
-
-    /* THE SIDEBAR SWAP FIX */
-    /* This targets the main horizontal container and flips it */
-    [data-testid="stAppViewBlockContainer"] {
-        direction: rtl !important;
-    }
-    
-    /* If Streamlit is in RTL mode, the sidebar is on the right. 
-       To move it to the left, we force the sidebar's container to the left. */
-    section[data-testid="stSidebar"] {
-        left: 0 !important;
-        right: auto !important;
-        border-right: 1px solid rgba(255,255,255,0.1);
-        border-left: none !important;
-    }
-
-    /* Adjust the main content margin to account for the moved sidebar */
-    .stMain {
-        margin-left: 0 !important;
     }
 
     /* Force Date Picker to Screen Center */
@@ -65,7 +45,7 @@ st.markdown("""
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
 
-    /* Vertical Names */
+    /* Vertical Student Names */
     .student-header {
         font-size: 0.8rem !important;
         font-weight: 800;
@@ -79,6 +59,7 @@ st.markdown("""
         white-space: nowrap;
     }
 
+    /* Centering everything in columns */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -87,16 +68,15 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* Task Card: Maximum Horizontal Shrink */
+    /* Assignment Card: Shrink to Content */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
         padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        display: block !important;
         width: fit-content !important;
-        min-width: 100px;
+        min-width: 110px;
     }
 
     /* Small Squares */
@@ -125,7 +105,7 @@ try:
 except:
     tasks = []
 
-# Unified Ratios
+# Column 0 is the task, others are students
 grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
@@ -145,6 +125,7 @@ if tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
         with r_cols[0]:
+            # Inner columns for Trash + Details
             c_bin, c_text = st.columns([0.2, 0.8])
             with c_bin:
                 if st.button("🗑️", key=f"del_{task['id']}"):
@@ -167,7 +148,7 @@ if tasks:
                     
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# Sidebar
+# --- 7. Sidebar ---
 with st.sidebar:
     st.title("ניהול")
     with st.form("new_task"):
