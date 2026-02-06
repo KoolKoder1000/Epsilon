@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=3000, key="epsilon_compact_final")
+st_autorefresh(interval=3000, key="epsilon_final_compact")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Ultra-Compact Alignment ---
+# --- 4. CSS for Maximum Shrink & Date Styling ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -38,7 +38,7 @@ st.markdown("""
 
     /* Vertical Names */
     .student-header {
-        font-size: 0.85rem !important;
+        font-size: 0.8rem !important;
         font-weight: 800;
         color: white;
         height: 85px;
@@ -50,35 +50,35 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* Column Symmetry & Pulling them together */
+    /* Column Symmetry & Extreme Shrink */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important; 
         justify-content: center !important;
-        text-align: center !important;
         padding: 0 !important;
-        min-width: 30px !important; /* Forces columns to be narrow */
     }
 
-    /* Button Styling: Creating the 'No-Touch' Zone */
-    div.stButton > button {
-        width: 24px !important;
-        height: 24px !important;
-        min-width: 24px !important;
-        border-radius: 6px !important;
-        border: none !important;
-        margin: 0 3px !important; /* This 3px creates the gap between buttons */
-    }
-
-    /* Task Card Alignment */
+    /* Task Card: Shrink horizontally to minimum */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
-        padding: 6px 10px;
+        padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        width: 100%;
+        display: inline-block !important; /* Forces shrink to content */
+        min-width: 120px; /* Minimum width for readability */
+        max-width: fit-content;
+    }
+
+    /* Button Styling: No-Touch Zone */
+    div.stButton > button {
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+        border-radius: 4px !important;
+        border: none !important;
+        margin: 0 2px !important;
     }
 
     /* Status Colors */
@@ -86,7 +86,7 @@ st.markdown("""
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; }
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; }
 
-    .row-divider { margin: 8px 0; border-bottom: 1px solid #333; width: 100%; }
+    .row-divider { margin: 6px 0; border-bottom: 1px solid #333; width: 100%; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -97,13 +97,13 @@ try:
 except:
     tasks = []
 
-# Balanced ratios: Much higher for details, very low for students
-grid_ratios = [4.0] + [0.25] * len(STUDENTS)
+# Modified ratios: Task Details is now smaller (1.2) to force shrink
+grid_ratios = [1.2] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
 h_cols = st.columns(grid_ratios, gap="small")
 with h_cols[0]:
-    st.markdown("<div style='font-weight:800; color:white; padding-top:45px; text-align:right; padding-right:15px;'>פרטי המטלה</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-weight:800; color:white; padding-top:55px; text-align:right;'>פרטי המטלה</div>", unsafe_allow_html=True)
 
 for i, name in enumerate(STUDENTS.keys()):
     with h_cols[i+1]:
@@ -117,15 +117,18 @@ if tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
         with r_cols[0]:
-            c_bin, c_text = st.columns([0.15, 0.85])
+            # Compact trash + text layout
+            c_bin, c_text = st.columns([0.2, 0.8])
             with c_bin:
                 if st.button("🗑️", key=f"del_{task['id']}"):
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
                     st.rerun()
             with c_text:
+                # Included the date inside the task card
                 st.markdown(f"""<div class="task-card">
-                    <div style="font-weight:800; font-size:0.85rem; color:white;">{task.get('subject','')}</div>
-                    <div style="font-size:0.75rem; color:#aaa;">{task.get('desc','')}</div>
+                    <div style="font-weight:800; font-size:0.8rem; color:white;">{task.get('subject','')}</div>
+                    <div style="font-size:0.7rem; color:#aaa;">{task.get('desc','')}</div>
+                    <div style="font-size:0.6rem; color:#666; font-family: monospace;">📅 {task.get('due_date','')}</div>
                 </div>""", unsafe_allow_html=True)
 
         for i, (name, db_col) in enumerate(STUDENTS.items()):
