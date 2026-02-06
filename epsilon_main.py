@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=3000, key="epsilon_final_fix")
+st_autorefresh(interval=3000, key="epsilon_sidebar_final")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,12 +26,18 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Layout & Alignment ---
+# --- 4. CSS: The "Double Flip" Strategy ---
 st.markdown("""
 <style>
-    html, body, [class*="css"], .stApp, button, p, div {
+    /* 1. Global Reset: Set to LTR to force sidebar to the LEFT */
+    html, body, [data-testid="stAppViewContainer"] {
+        direction: ltr !important;
         font-family: 'Calibri', 'Segoe UI', sans-serif !important;
-        direction: rtl;
+    }
+
+    /* 2. Content Reset: Force the main data area back to RTL for Hebrew */
+    [data-testid="stMain"], [data-testid="column"], .main-title, .task-card {
+        direction: rtl !important;
     }
 
     /* Force Date Picker to Screen Center */
@@ -41,6 +47,7 @@ st.markdown("""
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         z-index: 999999 !important;
+        direction: rtl !important;
     }
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
@@ -59,7 +66,7 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* Centering everything in columns */
+    /* Shrink the column containers */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -68,18 +75,19 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* Assignment Card: Shrink to Content */
+    /* Task Card: Maximum Horizontal Shrink */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
         padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        width: fit-content !important;
+        display: inline-block !important; /* Shinks to text width */
+        width: auto !important;
         min-width: 110px;
     }
 
-    /* Small Squares */
+    /* Status Buttons (Small Squares) */
     div.stButton > button {
         width: 22px !important;
         height: 22px !important;
@@ -105,7 +113,7 @@ try:
 except:
     tasks = []
 
-# Column 0 is the task, others are students
+# Assignment detail is index 0, students follow.
 grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
@@ -125,7 +133,6 @@ if tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
         with r_cols[0]:
-            # Inner columns for Trash + Details
             c_bin, c_text = st.columns([0.2, 0.8])
             with c_bin:
                 if st.button("🗑️", key=f"del_{task['id']}"):
@@ -148,7 +155,7 @@ if tasks:
                     
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# --- 7. Sidebar ---
+# --- 7. Sidebar (Should now be on the left) ---
 with st.sidebar:
     st.title("ניהול")
     with st.form("new_task"):
