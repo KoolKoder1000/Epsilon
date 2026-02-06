@@ -16,7 +16,7 @@ supabase = create_client(url, key)
 
 STUDENTS = {
     "טז טז": "yonatan", "יותקה": "yotam", "מטאטאו": "mateo", 
-    "הבן של\nהאמא שלו": "amit", "סוליטר": "sol", "הדס": "hadar", 
+    "בן של אמא שלו": "amit", "סוליטר": "sol", "הדס": "hadar", 
     "שלמקה": "shlomo", "אמא של עמית": "tamar", "סרוו": "ori", "עופר": "ofir"
 }
 
