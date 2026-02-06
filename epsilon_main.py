@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=3000, key="epsilon_calibri_fix")
+st_autorefresh(interval=5000, key="epsilon_calibri_fix")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -167,7 +167,7 @@ if tasks:
 
 # --- 7. Sidebar ---
 with st.sidebar:
-    st.title("ניהול")
+    st.title("")
     with st.form("new_task"):
         subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
         desc = st.text_input("תיאור")
