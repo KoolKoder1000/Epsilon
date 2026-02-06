@@ -143,7 +143,7 @@ if tasks:
 
 # Sidebar
 with st.sidebar:
-    st.title("ניהול")
+    st.title("")
     with st.form("new_task"):
         subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
         desc = st.text_input("תיאור")
