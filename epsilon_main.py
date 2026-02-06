@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=5000, key="epsilon_calibri_fix")
+st_autorefresh(interval=5000, key="epsilon_forced_dark")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,34 +26,35 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS: The Calibri & Sidebar Hammer ---
+# --- 4. CSS: Forced Dark Mode + Sidebar Swap ---
 st.markdown("""
 <style>
-    /* 1. THE FONT HAMMER: Force Calibri on everything */
-    @import url('https://fonts.cdnfonts.com/css/calibri');
-
-    * {
-        font-family: 'Calibri', 'Candara', 'Segoe UI', sans-serif !important;
-    }
-
-    /* FORCE DARK MODE */
+    /* FORCE DARK MODE COLORS */
     :root {
         --primary-bg: #0e1117;
         --secondary-bg: #262730;
+        --text-color: #ffffff;
     }
 
+    /* Apply forced dark mode to every container */
     html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stSidebar"] {
         background-color: var(--primary-bg) !important;
-        color: white !important;
-        direction: ltr !important; /* Forces Sidebar Left */
+        color: var(--text-color) !important;
+        direction: ltr !important; /* Global LTR to move sidebar LEFT */
+        font-family: 'Calibri', 'Segoe UI', sans-serif !important;
     }
 
-    /* Content Reset to RTL for Hebrew */
-    [data-testid="stMain"], [data-testid="column"], .main-title, .task-card, [data-testid="stForm"], .student-header {
+    /* Content Reset: Back to RTL for Hebrew text area */
+    [data-testid="stMain"], [data-testid="column"], .main-title, .task-card, [data-testid="stForm"] {
         direction: rtl !important;
     }
 
-    /* Center Calendar */
+    /* Fix Sidebar Background specifically */
+    [data-testid="stSidebar"] {
+        background-color: var(--secondary-bg) !important;
+    }
+
+    /* Force Date Picker to Center and Dark Mode */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
@@ -61,14 +62,17 @@ st.markdown("""
         transform: translate(-50%, -50%) !important;
         z-index: 999999 !important;
         direction: rtl !important;
+        background-color: #333 !important;
+        border: 1px solid #444 !important;
     }
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; color: white; }
 
     /* Vertical Names */
     .student-header {
-        font-size: 0.85rem !important;
+        font-size: 0.8rem !important;
         font-weight: 800;
+        color: white;
         height: 85px;
         display: flex;
         align-items: center;
@@ -106,6 +110,13 @@ st.markdown("""
         border-radius: 4px !important;
         border: none !important;
         margin: 0 2px !important;
+    }
+
+    /* Dark Mode specific text/input overrides */
+    input, select, textarea {
+        background-color: #0e1117 !important;
+        color: white !important;
+        border: 1px solid #444 !important;
     }
 
     /* Status Colors */
@@ -150,9 +161,9 @@ if tasks:
                     st.rerun()
             with c_text:
                 st.markdown(f"""<div class="task-card">
-                    <div style="font-weight:800; font-size:0.85rem; color:white;">{task.get('subject','')}</div>
-                    <div style="font-size:0.75rem; color:#aaa;">{task.get('desc','')}</div>
-                    <div style="font-size:0.65rem; color:#00d4ff; font-weight:bold;">📅 {task.get('due_date','')}</div>
+                    <div style="font-weight:800; font-size:0.8rem; color:white;">{task.get('subject','')}</div>
+                    <div style="font-size:0.7rem; color:#aaa;">{task.get('desc','')}</div>
+                    <div style="font-size:0.6rem; color:#00d4ff; font-weight:bold;">📅 {task.get('due_date','')}</div>
                 </div>""", unsafe_allow_html=True)
 
         for i, (name, db_col) in enumerate(STUDENTS.items()):
