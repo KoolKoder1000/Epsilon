@@ -4,7 +4,7 @@ from supabase import create_client
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. Page Config ---
-st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
+st.set_page_config(page_title="EpSilon", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
 st_autorefresh(interval=5000, key="epsilon_forced_dark")
@@ -128,7 +128,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 class='main-title'>אפסילון</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>EpSilon</h1>", unsafe_allow_html=True)
 
 try:
     tasks = supabase.table("tasks").select("*").order("due_date").execute().data
@@ -180,7 +180,7 @@ if tasks:
 with st.sidebar:
     st.title("")
     with st.form("new_task"):
-        subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
+        subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
         desc = st.text_input("תיאור")
         due = st.date_input("תאריך", value=datetime.today())
         if st.form_submit_button("הוסף", use_container_width=True):
