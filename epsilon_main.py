@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=3000, key="epsilon_sidebar_swap")
+st_autorefresh(interval=3000, key="epsilon_sidebar_force")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,7 +26,7 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Sidebar Swap & Alignment ---
+# --- 4. CSS for Force Sidebar & Layout ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
@@ -34,10 +34,24 @@ st.markdown("""
         direction: rtl;
     }
 
-    /* THE FIX: Move Sidebar to the other side */
-    /* Streamlit's main container uses flex. We reverse the row direction. */
-    .stApp3 {
-        flex-direction: row-reverse !important;
+    /* THE SIDEBAR SWAP FIX */
+    /* This targets the main horizontal container and flips it */
+    [data-testid="stAppViewBlockContainer"] {
+        direction: rtl !important;
+    }
+    
+    /* If Streamlit is in RTL mode, the sidebar is on the right. 
+       To move it to the left, we force the sidebar's container to the left. */
+    section[data-testid="stSidebar"] {
+        left: 0 !important;
+        right: auto !important;
+        border-right: 1px solid rgba(255,255,255,0.1);
+        border-left: none !important;
+    }
+
+    /* Adjust the main content margin to account for the moved sidebar */
+    .stMain {
+        margin-left: 0 !important;
     }
 
     /* Force Date Picker to Screen Center */
@@ -65,7 +79,6 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* Shrink the column containers */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -112,6 +125,7 @@ try:
 except:
     tasks = []
 
+# Unified Ratios
 grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
