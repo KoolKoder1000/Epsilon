@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=5000, key="epsilon_final_compact")
+st_autorefresh(interval=5000, key="epsilon_centered_cal")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,12 +26,21 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS for Maximum Shrink & Date Styling ---
+# --- 4. CSS for Center Calendar & Shrunk Assignments ---
 st.markdown("""
 <style>
     html, body, [class*="css"], .stApp, button, p, div {
         font-family: 'Calibri', 'Segoe UI', sans-serif !important;
         direction: rtl;
+    }
+
+    /* THE FIX: Force Date Picker / Popover to Screen Center */
+    div[data-baseweb="popover"], div[data-testid="stDateInput"] + div {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 999999 !important;
     }
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
@@ -50,7 +59,7 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* Column Symmetry & Extreme Shrink */
+    /* Shrink the column containers */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -59,19 +68,20 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* Task Card: Shrink horizontally to minimum */
+    /* Task Card: Maximum Horizontal Shrink */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
         padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        display: inline-block !important; /* Forces shrink to content */
-        min-width: 120px; /* Minimum width for readability */
-        max-width: fit-content;
+        display: block !important;
+        width: fit-content !important;
+        min-width: 100px;
+        margin-right: auto; /* Aligns card to the left of its column (closer to buttons) */
     }
 
-    /* Button Styling: No-Touch Zone */
+    /* Small Squares */
     div.stButton > button {
         width: 22px !important;
         height: 22px !important;
@@ -79,6 +89,14 @@ st.markdown("""
         border-radius: 4px !important;
         border: none !important;
         margin: 0 2px !important;
+    }
+
+    /* Trash Bin Styling */
+    .trash-btn button {
+        padding: 0 !important;
+        font-size: 0.8rem !important;
+        background: transparent !important;
+        border: none !important;
     }
 
     /* Status Colors */
@@ -97,8 +115,8 @@ try:
 except:
     tasks = []
 
-# Modified ratios: Task Details is now smaller (1.2) to force shrink
-grid_ratios = [1.2] + [0.3] * len(STUDENTS)
+# Unified Ratios: Making the details column (0) even smaller to reduce empty space
+grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
 h_cols = st.columns(grid_ratios, gap="small")
@@ -117,18 +135,20 @@ if tasks:
         r_cols = st.columns(grid_ratios, gap="small")
         
         with r_cols[0]:
-            # Compact trash + text layout
+            # Layout: Trash icon and then the details card
             c_bin, c_text = st.columns([0.2, 0.8])
             with c_bin:
+                st.markdown('<div class="trash-btn">', unsafe_allow_html=True)
                 if st.button("🗑️", key=f"del_{task['id']}"):
                     supabase.table("tasks").delete().eq("id", task['id']).execute()
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
             with c_text:
-                # Included the date inside the task card
+                # Date is now inside the card next to description
                 st.markdown(f"""<div class="task-card">
                     <div style="font-weight:800; font-size:0.8rem; color:white;">{task.get('subject','')}</div>
                     <div style="font-size:0.7rem; color:#aaa;">{task.get('desc','')}</div>
-                    <div style="font-size:0.6rem; color:#666; font-family: monospace;">📅 {task.get('due_date','')}</div>
+                    <div style="font-size:0.6rem; color:#00d4ff; font-weight:bold;">📅 {task.get('due_date','')}</div>
                 </div>""", unsafe_allow_html=True)
 
         for i, (name, db_col) in enumerate(STUDENTS.items()):
