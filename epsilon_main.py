@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="אפסילון", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh ---
-st_autorefresh(interval=5000, key="epsilon_sidebar_final")
+st_autorefresh(interval=3000, key="epsilon_forced_dark")
 
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
@@ -26,21 +26,35 @@ STATUS_CONFIG = [
     {"label": "הוגש", "class": "m-green"}
 ]
 
-# --- 4. CSS: The "Double Flip" Strategy ---
+# --- 4. CSS: Forced Dark Mode + Sidebar Swap ---
 st.markdown("""
 <style>
-    /* 1. Global Reset: Set to LTR to force sidebar to the LEFT */
-    html, body, [data-testid="stAppViewContainer"] {
-        direction: ltr !important;
+    /* FORCE DARK MODE COLORS */
+    :root {
+        --primary-bg: #0e1117;
+        --secondary-bg: #262730;
+        --text-color: #ffffff;
+    }
+
+    /* Apply forced dark mode to every container */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stSidebar"] {
+        background-color: var(--primary-bg) !important;
+        color: var(--text-color) !important;
+        direction: ltr !important; /* Global LTR to move sidebar LEFT */
         font-family: 'Calibri', 'Segoe UI', sans-serif !important;
     }
 
-    /* 2. Content Reset: Force the main data area back to RTL for Hebrew */
-    [data-testid="stMain"], [data-testid="column"], .main-title, .task-card {
+    /* Content Reset: Back to RTL for Hebrew text area */
+    [data-testid="stMain"], [data-testid="column"], .main-title, .task-card, [data-testid="stForm"] {
         direction: rtl !important;
     }
 
-    /* Force Date Picker to Screen Center */
+    /* Fix Sidebar Background specifically */
+    [data-testid="stSidebar"] {
+        background-color: var(--secondary-bg) !important;
+    }
+
+    /* Force Date Picker to Center and Dark Mode */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
@@ -48,11 +62,13 @@ st.markdown("""
         transform: translate(-50%, -50%) !important;
         z-index: 999999 !important;
         direction: rtl !important;
+        background-color: #333 !important;
+        border: 1px solid #444 !important;
     }
 
-    .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; }
+    .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; color: white; }
 
-    /* Vertical Student Names */
+    /* Vertical Names */
     .student-header {
         font-size: 0.8rem !important;
         font-weight: 800;
@@ -66,7 +82,6 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* Shrink the column containers */
     [data-testid="column"] {
         display: flex !important;
         flex-direction: column !important;
@@ -75,19 +90,19 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* Task Card: Maximum Horizontal Shrink */
+    /* Task Card: Maximum Shrink */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
         padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        display: inline-block !important; /* Shinks to text width */
+        display: inline-block !important;
         width: auto !important;
         min-width: 110px;
     }
 
-    /* Status Buttons (Small Squares) */
+    /* Status Buttons */
     div.stButton > button {
         width: 22px !important;
         height: 22px !important;
@@ -95,6 +110,13 @@ st.markdown("""
         border-radius: 4px !important;
         border: none !important;
         margin: 0 2px !important;
+    }
+
+    /* Dark Mode specific text/input overrides */
+    input, select, textarea {
+        background-color: #0e1117 !important;
+        color: white !important;
+        border: 1px solid #444 !important;
     }
 
     /* Status Colors */
@@ -113,7 +135,6 @@ try:
 except:
     tasks = []
 
-# Assignment detail is index 0, students follow.
 grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
 # --- 5. THE HEADER ROW ---
@@ -155,9 +176,9 @@ if tasks:
                     
         st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
 
-# --- 7. Sidebar (Should now be on the left) ---
+# --- 7. Sidebar ---
 with st.sidebar:
-    st.title("")
+    st.title("ניהול")
     with st.form("new_task"):
         subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח'", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
         desc = st.text_input("תיאור")
