@@ -16,8 +16,8 @@ supabase = create_client(url, key)
 
 STUDENTS = {
     "טז טז": "yonatan", "יותקה": "yotam", "מוריה": "mateo", 
-    "בן של אמא שלו": "amit", "סוליטר": "sol", "הדס": "hadar", 
-    "שלמקה": "shlomo", "אמא של עמית": "tamar", "סרוו": "ori", "עופר": "ofir"
+    "סבא של עצמו": "amit", "סוליטר": "sol", "הדס": "hadar", 
+    "שלמקה": "shlomo", "סבתא של עצמה": "tamar", "סרוו": "ori", "טוב תודה": "ofir"
 }
 
 STATUS_CONFIG = [
