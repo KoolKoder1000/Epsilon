@@ -15,9 +15,9 @@ key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 STUDENTS = {
-    "טז טז": "yonatan", "יותקה": "yotam", "מוריה": "mateo", 
-    "סבא של עצמו": "amit", "סוליטר": "sol", "הדס": "hadar", 
-    "שלמקה": "shlomo", "סבתא של עצמה": "tamar", "סרוו": "ori", "טוב תודה": "ofir"
+    "יונתן": "yonatan", "יותם": "yotam", "מתאו": "mateo", 
+    "עמית": "amit", "סול": "sol", "הדר": "hadar", 
+    "שלמה": "shlomo", "תמר": "tamar", "אורי": "ori", "אופיר": "ofir"
 }
 
 STATUS_CONFIG = [
