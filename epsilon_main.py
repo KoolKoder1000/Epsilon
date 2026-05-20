@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from datetime import datetime
 from supabase import create_client
 from streamlit_autorefresh import st_autorefresh
@@ -6,8 +7,13 @@ from streamlit_autorefresh import st_autorefresh
 # --- 1. Page Config ---
 st.set_page_config(page_title="EpSilon", page_icon="ε", layout="wide")
 
-# --- 2. Auto-Refresh ---
+# --- 2. Auto-Refresh & Popover Closer ---
 st_autorefresh(interval=5000, key="epsilon_forced_dark")
+
+# This invisible component presses 'Escape' to close the popover after a save
+if st.session_state.get("close_popover"):
+    components.html("<script>window.parent.document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}));</script>", width=0, height=0)
+    st.session_state["close_popover"] = False
 
 st.html("""
 <style>
@@ -90,6 +96,15 @@ st.markdown("""
         direction: rtl !important;
         background-color: #333 !important;
         border: 1px solid #444 !important;
+    }
+
+    /* FIX: Make the interior popover save button wide and single-line */
+    div[data-baseweb="popover"] button {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 38px !important;
+        min-width: 80px !important;
+        padding: 0.5rem !important;
     }
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; color: white; }
@@ -216,6 +231,7 @@ if tasks:
                     new_date = st.date_input("עדכון תאריך הגשה:", value=curr_date, key=f"date_in_{task['id']}")
                     if st.button("שמור", key=f"save_date_{task['id']}", use_container_width=True):
                         supabase.table("tasks").update({"due_date": str(new_date)}).eq("id", task['id']).execute()
+                        st.session_state["close_popover"] = True # Trigger the close routine on reload
                         st.rerun()
                         
                     st.markdown("</div>", unsafe_allow_html=True)
