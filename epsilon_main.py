@@ -155,6 +155,23 @@ st.markdown("""
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; }
 
     .row-divider { margin: 6px 0; border-bottom: 1px solid #333; width: 100%; }
+
+    /* --- NEW: INVISIBLE POPOVER HITBOX CSS --- */
+    /* Targets only popover containers that hold our specific identifier text */
+    div[data-testid="stPopover"]:has(p:contains("✏️ תאריך")) {
+        margin-top: -30px !important; /* Pulls the Streamlit element UP over the HTML card's date */
+        opacity: 0 !important;        /* Makes the button invisible to the eye but still clickable */
+        z-index: 10 !important;
+        display: flex !important;
+        justify-content: center !important;
+        pointer-events: auto !important;
+    }
+    div[data-testid="stPopover"]:has(p:contains("✏️ תאריך")) button {
+        width: 110px !important;      /* Match width of typical date text */
+        height: 30px !important;
+        cursor: pointer !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -195,6 +212,24 @@ if tasks:
                     <div style="font-size:0.7rem; color:#aaa;">{task.get('desc','')}</div>
                     <div style="font-size:0.6rem; color:#00d4ff; font-weight:bold;">📅 {task.get('due_date','')}</div>
                 </div>""", unsafe_allow_html=True)
+
+                # --- NEW: INVISIBLE POPOVER ---
+                # Renders right underneath the HTML but gets pulled up via CSS
+                with st.popover("✏️ תאריך", use_container_width=True):
+                    # Wrap in RTL container for clean formatting
+                    st.markdown("<div style='direction: rtl; text-align: right;'>", unsafe_allow_html=True)
+                    
+                    try:
+                        curr_date = datetime.strptime(task.get('due_date',''), "%Y-%m-%d").date()
+                    except:
+                        curr_date = datetime.today().date()
+                    
+                    new_date = st.date_input("עדכון תאריך הגשה:", value=curr_date, key=f"date_in_{task['id']}")
+                    if st.button("שמור", key=f"save_date_{task['id']}", use_container_width=True):
+                        supabase.table("tasks").update({"due_date": str(new_date)}).eq("id", task['id']).execute()
+                        st.rerun()
+                        
+                    st.markdown("</div>", unsafe_allow_html=True)
 
         for i, (name, db_col) in enumerate(STUDENTS.items()):
             with r_cols[i+1]:
