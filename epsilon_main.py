@@ -107,6 +107,17 @@ st.markdown("""
         padding: 0.5rem !important;
     }
 
+    div[data-baseweb="popover"] div.stButton > button {
+        width: 100% !important;
+        height: 38px !important;
+        min-width: 80px !important;
+        padding: 0 10px !important;
+        white-space: nowrap !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; color: white; }
 
     .student-header {
