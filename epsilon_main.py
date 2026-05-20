@@ -9,6 +9,36 @@ st.set_page_config(page_title="EpSilon", page_icon="ε", layout="wide")
 # --- 2. Auto-Refresh ---
 st_autorefresh(interval=5000, key="epsilon_forced_dark")
 
+st.html("""
+<style>
+@media screen and (orientation: portrait) {
+    .stApp {
+        display: none !important;
+    }
+    
+    html::before {
+        content: "🔄 נא לסובב את המסך 🔄";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #0e1117; /* Matches Streamlit's default dark theme */
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+        font-family: sans-serif;
+        font-size: 1.5rem;
+        font-weight: bold;
+        z-index: 999999;
+    }
+}
+</style>
+""")
+
 # --- 3. Supabase ---
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
