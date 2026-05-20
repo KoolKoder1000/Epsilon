@@ -179,13 +179,13 @@ st.markdown("""
     div[data-testid="stPopover"]:has(p:contains("תאריך")) {
         display: flex !important;
         justify-content: center !important;
-        margin-top: 4px !important; /* Small gap below the card */
-        width: 100% !important;
+        margin-top: 1px !important; /* Small gap below the card */
+        width: 80% !important;
     }
     div[data-testid="stPopover"]:has(p:contains("תאריך")) button {
-        width: 140px !important;    /* MATCHES TASK CARD WIDTH EXACTLY */
+        width: 110px !important;    /* MATCHES TASK CARD WIDTH EXACTLY */
         height: auto !important;
-        min-height: 32px !important;
+        min-height: 28px !important;
         cursor: pointer !important;
     }
 
