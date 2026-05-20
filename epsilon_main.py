@@ -23,7 +23,7 @@ st.html("""
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: #0e1117; /* Matches Streamlit's default dark theme */
+        background-color: #0e1117;
         color: #ffffff;
         display: flex;
         justify-content: center;
@@ -66,25 +66,21 @@ st.markdown("""
         --text-color: #ffffff;
     }
 
-    /* Apply forced dark mode to every container */
     html, body, [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stSidebar"] {
         background-color: var(--primary-bg) !important;
         color: var(--text-color) !important;
-        direction: ltr !important; /* Global LTR to move sidebar LEFT */
+        direction: ltr !important; 
         font-family: 'Calibri', 'Segoe UI', sans-serif !important;
     }
 
-    /* Content Reset: Back to RTL for Hebrew text area */
     [data-testid="stMain"], [data-testid="column"], .main-title, .task-card, [data-testid="stForm"] {
         direction: rtl !important;
     }
 
-    /* Fix Sidebar Background specifically */
     [data-testid="stSidebar"] {
         background-color: var(--secondary-bg) !important;
     }
 
-    /* Force Date Picker to Center and Dark Mode */
     div[data-baseweb="popover"] {
         position: fixed !important;
         top: 50% !important;
@@ -98,7 +94,6 @@ st.markdown("""
 
     .main-title { text-align: center; margin-top: -60px !important; font-size: 2.5rem; font-weight: 900; color: white; }
 
-    /* Vertical Names */
     .student-header {
         font-size: 0.8rem !important;
         font-weight: 800;
@@ -120,16 +115,16 @@ st.markdown("""
         padding: 0 !important;
     }
 
-    /* Task Card: Maximum Shrink */
+    /* --- ALIGNED WIDTH: Task Card --- */
     .task-card {
         background-color: #1e1e1e;
         border-right: 3px solid #ffffff;
         padding: 4px 8px;
         border-radius: 4px;
         text-align: right;
-        display: inline-block !important;
-        width: auto !important;
-        min-width: 110px;
+        display: block !important;
+        width: 140px !important; /* FIXED WIDTH */
+        margin: 0 auto;
     }
 
     /* Status Buttons */
@@ -142,33 +137,29 @@ st.markdown("""
         margin: 0 2px !important;
     }
 
-    /* Dark Mode specific text/input overrides */
     input, select, textarea {
         background-color: #0e1117 !important;
         color: white !important;
         border: 1px solid #444 !important;
     }
 
-    /* Status Colors */
     div[data-testid*="Column"]:has(.m-red) button { background-color: #ff4b4b !important; }
     div[data-testid*="Column"]:has(.m-orange) button { background-color: #ffa500 !important; }
     div[data-testid*="Column"]:has(.m-green) button { background-color: #28a745 !important; }
 
     .row-divider { margin: 6px 0; border-bottom: 1px solid #333; width: 100%; }
 
-    /* --- NEW: INVISIBLE POPOVER HITBOX CSS --- */
-    /* Targets only popover containers that hold our specific identifier text */
-    div[data-testid="stPopover"]:has(p:contains("✏️ תאריך")) {
-        margin-top: -30px !important; /* Pulls the Streamlit element UP over the HTML card's date */
-        opacity: 0 !important;        /* Makes the button invisible to the eye but still clickable */
-        z-index: 10 !important;
+    /* --- ALIGNED WIDTH: Popover Button --- */
+    div[data-testid="stPopover"]:has(p:contains("תאריך")) {
         display: flex !important;
         justify-content: center !important;
-        pointer-events: auto !important;
+        margin-top: 4px !important; /* Small gap below the card */
+        width: 100% !important;
     }
-    div[data-testid="stPopover"]:has(p:contains("✏️ תאריך")) button {
-        width: 110px !important;      /* Match width of typical date text */
-        height: 30px !important;
+    div[data-testid="stPopover"]:has(p:contains("תאריך")) button {
+        width: 140px !important;    /* MATCHES TASK CARD WIDTH EXACTLY */
+        height: auto !important;
+        min-height: 32px !important;
         cursor: pointer !important;
     }
 
@@ -213,10 +204,8 @@ if tasks:
                     <div style="font-size:0.6rem; color:#00d4ff; font-weight:bold;">📅 {task.get('due_date','')}</div>
                 </div>""", unsafe_allow_html=True)
 
-                # --- NEW: INVISIBLE POPOVER ---
-                # Renders right underneath the HTML but gets pulled up via CSS
-                with st.popover("✏️ תאריך", use_container_width=True):
-                    # Wrap in RTL container for clean formatting
+                # Popover element right below the HTML card
+                with st.popover("תאריך ✏️", use_container_width=True):
                     st.markdown("<div style='direction: rtl; text-align: right;'>", unsafe_allow_html=True)
                     
                     try:
