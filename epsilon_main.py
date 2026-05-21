@@ -17,7 +17,8 @@ if st.session_state.get("close_popover"):
 
 st.html("""
 <style>
-@media screen and (orientation: portrait) {
+/* Trigger only if it's portrait AND narrow (phones) */
+@media screen and (orientation: portrait) and (max-width: 600px) {
     .stApp {
         display: none !important;
     }
