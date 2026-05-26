@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 from datetime import datetime
 from supabase import create_client
 from streamlit_autorefresh import st_autorefresh
+import base64
 
 # --- 1. Page Config ---
 st.set_page_config(page_title="EpSilon", page_icon="ε", layout="wide")
@@ -190,6 +191,15 @@ st.markdown("""
         cursor: pointer !important;
     }
 
+    /* --- MEME CORNER SIDEBAR RTL FIX --- */
+    .meme-title {
+        text-align: center;
+        color: #ffaa00;
+        font-weight: bold;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -199,6 +209,13 @@ try:
     tasks = supabase.table("tasks").select("*").order("due_date").execute().data
 except:
     tasks = []
+
+# שליפת המם הנוכחי מתוך Supabase
+try:
+    meme_query = supabase.table("memes").select("base64_data").eq("id", 1).execute().data
+    current_meme_b64 = meme_query[0]["base64_data"] if meme_query else None
+except:
+    current_meme_b64 = None
 
 grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
@@ -270,3 +287,30 @@ with st.sidebar:
                 payload = {"subject": subj, "desc": desc, "due_date": str(due), **{c: 0 for c in STUDENTS.values()}}
                 supabase.table("tasks").insert(payload).execute()
                 st.rerun()
+
+    # --- פינת המימס החדשה ---
+    st.markdown("<div class='row-divider'></div>", unsafe_allow_html=True)
+    st.markdown("<h3 class='meme-title'>🃏 פינת המימס 🃏</h3>", unsafe_allow_html=True)
+    
+    # הצגת המם הקיים
+    if current_meme_b64:
+        st.image(f"data:image/png;base64,{current_meme_b64}", use_container_width=True)
+    else:
+        st.info("...")
+        
+    # כפתור העלאת קובץ
+    uploaded_file = st.file_uploader("העלה מם חדש:", type=["png", "jpg", "jpeg"], key="meme_uploader", label_visibility="collapsed")
+    
+    if uploaded_file is not None:
+        # המרת הקובץ שהועלה ל-Base64 string
+        file_bytes = uploaded_file.getvalue()
+        encoded_meme = base64.b64encode(file_bytes).decode("utf-8")
+        
+        # שמירה או עדכון ב-Supabase (תמיד דורס את רשומה מספר 1)
+        if current_meme_b64 is not None:
+            supabase.table("memes").update({"base64_data": encoded_meme}).eq("id", 1).execute()
+        else:
+            supabase.table("memes").insert({"id": 1, "base64_data": encoded_meme}).execute()
+            
+        st.success("המים עודכן בהצלחה!")
+        st.rerun()
