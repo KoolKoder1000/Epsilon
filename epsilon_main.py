@@ -9,7 +9,7 @@ import base64
 st.set_page_config(page_title="EpSilon", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh & Popover Closer ---
-st_autorefresh(interval=5000, key="epsilon_forced_dark")
+st_autorefresh(interval=6000, key="epsilon_forced_dark")
 
 # This invisible component presses 'Escape' to close the popover after a save
 if st.session_state.get("close_popover"):
