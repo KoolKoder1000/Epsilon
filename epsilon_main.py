@@ -9,7 +9,7 @@ import base64
 st.set_page_config(page_title="EpSilon", page_icon="ε", layout="wide")
 
 # --- 2. Auto-Refresh & Popover Closer ---
-st_autorefresh(interval=4000, key="epsilon_forced_dark")
+refresh_count = st_autorefresh(interval=5000, key="epsilon_forced_dark")
 
 # This invisible component presses 'Escape' to close the popover after a save
 if st.session_state.get("close_popover"):
@@ -211,11 +211,14 @@ except:
     tasks = []
 
 # שליפת המם הנוכחי מתוך Supabase
-try:
-    meme_query = supabase.table("memes").select("base64_data").eq("id", 1).execute().data
-    current_meme_b64 = meme_query[0]["base64_data"] if meme_query else None
-except:
-    current_meme_b64 = None
+if "current_meme_b64" not in st.session_state or refresh_count % 5 == 0:
+    try:
+        meme_query = supabase.table("memes").select("base64_data").eq("id", 1).execute().data
+        st.session_state["current_meme_b64"] = meme_query[0]["base64_data"] if meme_query else None
+    except:
+        st.session_state["current_meme_b64"] = None
+
+current_meme_b64 = st.session_state["current_meme_b64"]
 
 grid_ratios = [1.0] + [0.3] * len(STUDENTS)
 
