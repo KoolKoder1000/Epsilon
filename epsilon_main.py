@@ -311,6 +311,4 @@ with st.sidebar:
             supabase.table("memes").update({"base64_data": encoded_meme}).eq("id", 1).execute()
         else:
             supabase.table("memes").insert({"id": 1, "base64_data": encoded_meme}).execute()
-            
-        st.success("המים עודכן בהצלחה!")
         st.rerun()
