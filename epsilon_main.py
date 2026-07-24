@@ -282,7 +282,7 @@ if tasks:
 with st.sidebar:
     st.title("")
     with st.form("new_task"):
-        subj = st.selectbox("קורס", ["חומרי תעופה", "מדר ח", "מוצקים", "פיזיקה 2", "חדוא 2", "שרטוט הנדסי"])
+        subj = st.selectbox("קורס", ["תרמו", "דינמיקה", """מד"ח""", "פיזיקה 3", "הסתברות", "מרוכבות"])
         desc = st.text_input("תיאור")
         due = st.date_input("תאריך", value=datetime.today())
         if st.form_submit_button("הוסף", use_container_width=True):
